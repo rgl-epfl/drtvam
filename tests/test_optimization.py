@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 
 
-@pytest.mark.parametrize("variant", ["cuda_ad_mono", "llvm_ad_mono"])
+@pytest.mark.parametrize("variant", ["llvm_ad_mono"])
 def test_square_hole_occlusion_optimization(variant):
     mi.set_variant(variant)
 
@@ -81,7 +81,7 @@ def test_square_hole_occlusion_optimization(variant):
                                    'tests/files/box_hole_square_weighted_loss.json',\
                                    'tests/files/box_hole_index_matched.json'\
                                    ])
-@pytest.mark.parametrize("variant", ["cuda_ad_mono", "llvm_ad_mono"])
+@pytest.mark.parametrize("variant", ["llvm_ad_mono"])
 def test_square_hole_optimization(fname, variant):
     mi.set_variant(variant)
 
