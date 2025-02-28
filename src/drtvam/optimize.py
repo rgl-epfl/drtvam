@@ -291,6 +291,8 @@ def optimize(config):
     efficiency = np.sum(normalized_array / normalized_array.size)
     print("Pattern efficiency {:.4f}".format(efficiency))
 
+    dr.sync_thread()
+
     save_histogram(vol_final, target, os.path.join(output, "histogram.png"), efficiency)
 
     return vol_final
