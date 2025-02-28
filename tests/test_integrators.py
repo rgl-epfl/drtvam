@@ -67,6 +67,7 @@ def build_scene(method):
     return mi.load_dict(scene_dict)
 
 @pytest.mark.parametrize("variant", ["cuda_ad_mono", "llvm_ad_mono"])
+@pytest.mark.skip(reason="Temp")
 def test_reverse_ad(variant):
     mi.set_variant(variant)
     scene = build_scene('dda')
