@@ -256,6 +256,9 @@ def optimize(config):
     params.update(opt)
     vol_final = mi.render(scene, params, spp=spp_ref, integrator=integrator_final, sensor=final_sensor)
 
+    dr.eval(vol_final)
+    dr.sync_thread()
+
     np.save(os.path.join(output, "final.npy"), vol_final.numpy())
     save_vol(vol_final, os.path.join(output, "final.exr"))
 
@@ -264,6 +267,7 @@ def optimize(config):
 
     imgs_final = scene.emitters()[0].patterns()
     dr.eval(imgs_final)
+    dr.sync_thread()
 
     print("Saving images...")
     for i in trange(imgs_final.shape[0]):
@@ -290,8 +294,6 @@ def optimize(config):
 
     efficiency = np.sum(normalized_array / normalized_array.size)
     print("Pattern efficiency {:.4f}".format(efficiency))
-
-    dr.sync_thread()
 
     save_histogram(vol_final, target, os.path.join(output, "histogram.png"), efficiency)
 
