@@ -7,7 +7,9 @@ import matplotlib.pyplot as plt
 def iou_loss(pred, target, threshold=0.9):
     obj_mask = target.array > 0.
     thresholded = pred.array > threshold
-    return mi.Float(dr.count(thresholded & obj_mask)) / dr.count(thresholded | obj_mask)
+    output = mi.Float(dr.count(thresholded & obj_mask)) / dr.count(thresholded | obj_mask)
+    print(f'iou_loss {output} len of mask {dr.count(thresholded & obj_mask)}')
+    return output
 
 def reshape_grid(array):
     if len(array.shape) == 3:
