@@ -10,9 +10,9 @@ authors = [
 ]
 description = "An inverse rendering framework for tomographic volumetric additive manufacturing"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
-    "mitsuba>=3.6.0",
+    "mitsuba>=3.6.4",
     "numpy",
     "tqdm",
     "matplotlib"
