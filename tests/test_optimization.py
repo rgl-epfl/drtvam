@@ -85,6 +85,9 @@ def test_square_hole_occlusion_optimization(variant):
 def test_square_hole_optimization(fname, variant):
     mi.set_variant(variant)
 
+    dr.set_log_level(dr.LogLevel.Info)
+    dr.set_flag(dr.JitFlag.Debug, True)
+
     # Load the configuration file
     with open(fname, 'r') as f:
         config = json.load(f)
