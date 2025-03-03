@@ -3,6 +3,8 @@ if ('llvm_ad_mono' not in mi.variants()) and ('cuda_ad_mono' not in mi.variants(
     raise ImportError("This package requires Mitsuba's'llvm_ad_mono' or 'cuda_ad_mono' variants to be available.")
 import drjit as dr
 
+#dr.set_thread_count(2)
+
 def plugin_variant_callback(old, new):
     if new not in ['cuda_ad_mono', 'llvm_ad_mono']:
         raise ValueError(f"Unsupported variant '{new}', it must be either 'cuda_ad_mono' or 'llvm_ad_mono'.")
@@ -21,7 +23,7 @@ def plugin_variant_callback(old, new):
 mi.detail.add_variant_callback(plugin_variant_callback)
 from . import integrators
 
-mi.set_variant('cuda_ad_mono', 'llvm_ad_mono')
+mi.set_variant('llvm_ad_mono')
 
 from . import geometry, motion, loss
 
