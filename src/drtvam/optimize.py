@@ -84,6 +84,8 @@ def optimize(config):
     rr_depth = config.get('rr_depth', 6) # i.e. disabled by default
     time = config.get('time', 1.) # Print duration in seconds
     progressive = config.get('progressive', False)
+    transmission_only = config.get('transmission_only', True)
+    regular_sampling = config.get('regular_sampling', False)
     sensor = None
     final_sensor = None
     for s in scene.sensors():
@@ -105,6 +107,8 @@ def optimize(config):
         'max_depth': 3 if progressive else max_depth,
         'rr_depth': rr_depth,
         'print_time': time,
+        'transmission_only': transmission_only,
+        'regular_sampling': regular_sampling
     })
 
     # Computing reference
