@@ -30,7 +30,7 @@ def test_square_hole_occlusion_optimization(variant):
     with open(os.path.join(config['output'], "opt_config.json"), 'w') as f:
         json.dump(config, f, indent=4)
 
-    vol_final = optimize(config, write_output=False)
+    vol_final = optimize(config)
 
     # voxelized reference
     reference = np.zeros((50, 100, 100))
@@ -96,7 +96,7 @@ def test_square_hole_optimization(fname, variant):
     with open(os.path.join(config['output'], "opt_config.json"), 'w') as f:
         json.dump(config, f, indent=4)
 
-    vol_final = optimize(config, write_output=False)
+    vol_final = optimize(config)
 
     # voxelized reference
     reference = np.zeros((50, 100, 100))

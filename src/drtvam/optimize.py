@@ -3,7 +3,7 @@ import mitsuba as mi
 import drjit as dr
 import numpy as np
 import os
-from tqdm import trange
+#from tqdm import trange
 import json
 import argparse
 
@@ -207,7 +207,7 @@ def optimize(config, write_output=True):
     timing_hist = np.zeros((n_steps, 2))
 
     print("Optimizing patterns...")
-    for i in trange(n_steps):
+    for i in range(n_steps):
         if progressive and i == 5:
             integrator.max_depth = max_depth
 
@@ -267,7 +267,7 @@ def optimize(config, write_output=True):
         dr.eval(imgs_final)
 
         print("Saving images...")
-        for i in trange(imgs_final.shape[0]):
+        for i in range(imgs_final.shape[0]):
             save_img(imgs_final[i], os.path.join(output, "patterns", f"{i:04d}.exr"))
         np.savez_compressed(os.path.join(output, "patterns.npz"), patterns=imgs_final.numpy())
 
