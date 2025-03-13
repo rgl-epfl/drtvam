@@ -69,7 +69,7 @@ def load_scene(config):
 
     return scene_dict
 
-def optimize(config):
+def optimize(config, write_output=True):
     scene_dict = load_scene(config)
     scene = mi.load_dict(scene_dict)
     params = mi.traverse(scene)
@@ -256,42 +256,43 @@ def optimize(config):
     params.update(opt)
     vol_final = mi.render(scene, params, spp=spp_ref, integrator=integrator_final, sensor=final_sensor)
 
-    np.save(os.path.join(output, "final.npy"), vol_final.numpy())
-    save_vol(vol_final, os.path.join(output, "final.exr"))
+    if write_output:
+        np.save(os.path.join(output, "final.npy"), vol_final.numpy())
+        save_vol(vol_final, os.path.join(output, "final.exr"))
 
-    np.save(os.path.join(output, "loss.npy"), loss_hist)
-    np.save(os.path.join(output, "timing.npy"), timing_hist)
+        np.save(os.path.join(output, "loss.npy"), loss_hist)
+        np.save(os.path.join(output, "timing.npy"), timing_hist)
 
-    imgs_final = scene.emitters()[0].patterns()
-    dr.eval(imgs_final)
+        imgs_final = scene.emitters()[0].patterns()
+        dr.eval(imgs_final)
 
-    print("Saving images...")
-    for i in trange(imgs_final.shape[0]):
-        save_img(imgs_final[i], os.path.join(output, "patterns", f"{i:04d}.exr"))
-    np.savez_compressed(os.path.join(output, "patterns.npz"), patterns=imgs_final.numpy())
+        print("Saving images...")
+        for i in trange(imgs_final.shape[0]):
+            save_img(imgs_final[i], os.path.join(output, "patterns", f"{i:04d}.exr"))
+        np.savez_compressed(os.path.join(output, "patterns.npz"), patterns=imgs_final.numpy())
 
-    # save also the compressed version normalized to [0, 255]
-    # Step 1: Normalize the array to [0, 1]
-    array = imgs_final.numpy()
-    array_max = np.max(array)
-    normalized_array = array / array_max
-    # Step 2: Scale to [0, 255]
-    scaled_array = normalized_array * 255
-    # Step 3: Convert to np.uint8
-    final_array = scaled_array.astype(np.uint8)
-    np.savez_compressed(os.path.join(output, "patterns_normalized_uint8.npz"), patterns=final_array)
+        # save also the compressed version normalized to [0, 255]
+        # Step 1: Normalize the array to [0, 1]
+        array = imgs_final.numpy()
+        array_max = np.max(array)
+        normalized_array = array / array_max
+        # Step 2: Scale to [0, 255]
+        scaled_array = normalized_array * 255
+        # Step 3: Convert to np.uint8
+        final_array = scaled_array.astype(np.uint8)
+        np.savez_compressed(os.path.join(output, "patterns_normalized_uint8.npz"), patterns=final_array)
 
-    # save a high resolution in case of surface aware since the resolution
-    # might be low of target.exr/npy
-    if surface_aware:
-        target = discretize(scene, sensor=final_sensor)
-        np.save(os.path.join(output, "target_binary.npy"), target.numpy())
-        save_vol(target, os.path.join(output, "target_binary.exr"))
+        # save a high resolution in case of surface aware since the resolution
+        # might be low of target.exr/npy
+        if surface_aware:
+            target = discretize(scene, sensor=final_sensor)
+            np.save(os.path.join(output, "target_binary.npy"), target.numpy())
+            save_vol(target, os.path.join(output, "target_binary.exr"))
 
-    efficiency = np.sum(normalized_array / normalized_array.size)
-    print("Pattern efficiency {:.4f}".format(efficiency))
+        efficiency = np.sum(normalized_array / normalized_array.size)
+        print("Pattern efficiency {:.4f}".format(efficiency))
 
-    save_histogram(vol_final, target, os.path.join(output, "histogram.png"), efficiency)
+        save_histogram(vol_final, target, os.path.join(output, "histogram.png"), efficiency)
 
     return vol_final
 
