@@ -1,4 +1,4 @@
-.. _vial:
+.. _real_world_examples:
 
 Real World Examples
 ===================
@@ -47,6 +47,8 @@ In this case we optimize the  3D Benchy (https://3dbenchy.com/) as a printing ta
 
 Specifying Optimization Parameters
 ----------------------------------
+.. _real_world_examples_spp:
+
 We specify the optimization parameters with a JSON file. Below is an example of a JSON file which we use for the optimization:
 .. code-block:: 
 

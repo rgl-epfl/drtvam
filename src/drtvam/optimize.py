@@ -221,44 +221,68 @@ def optimize(config):
     loss_hist = np.zeros(n_steps)
     timing_hist = np.zeros((n_steps, 2))
 
-    print("Optimizing patterns...")
-    for i in trange(n_steps):
-        if progressive and i == 5:
-            integrator.max_depth = max_depth
+    if "psf_analysis" in config:
+        print("Exporting single ray tracing...")
+        # we simply loop over the entries specified in the json
+        number_rays_psf = len(config["psf_analysis"])
+        print(number_rays_psf)
+        params['projector.active_data'] = dr.ones(mi.UInt32, number_rays_psf)
+        params['projector.active_pixels'] = dr.zeros(mi.UInt32, number_rays_psf)
 
-        with dr.scoped_set_flag(dr.JitFlag.KernelHistory, True):
-            params.update(opt)
+        xres = config["projector"]["resx"]
+        yres = config["projector"]["resy"]
+        for (i, entry) in enumerate(config["psf_analysis"]):
+            assert entry["x"] < xres, "Invalid entry in psf_analysis: x out of bounds. Please check the configuration file."
+            assert entry["y"] < yres, "Invalid entry in psf_analysis: y out of bounds. Please check the configuration file."
+            assert entry["index_pattern"] < config["projector"]["n_patterns"], \
+                "Invalid entry in psf_analysis: index_pattern out of bounds. Please check the configuration file."
 
-            vol = mi.render(scene, params, integrator=integrator, sensor=sensor, spp=spp, spp_grad=spp_grad, seed=i)
-            dr.schedule(vol)
+            params['projector.active_pixels'][i] = \
+                xres * yres * entry["index_pattern"] + xres * entry["y"] + entry["x"]
+            params['projector.active_data'][i] *= entry["intensity"]
 
-            mi.Log(mi.LogLevel.Debug, "[drtvam] Calling loss from optimize loop")
-            loss = loss_fn(vol, target, params['projector.active_data'])
-            dr.eval(loss)
+        params.update()
 
-            # numpy conversion is necessary to store the loss value
-            # apparently in just loss.numpy() is deprecated since (Deprecated NumPy 1.25.)
-            loss_hist[i] = loss[0].numpy()
+    else:
+        print("Optimizing patterns...")
+        for i in trange(n_steps):
+            if progressive and i == 5:
+                integrator.max_depth = max_depth
 
-            # Primal timing
-            timing_hist[i, 0] = sum([h['execution_time'] for h in dr.kernel_history() if h['type'] == dr.KernelType.JIT])
+            with dr.scoped_set_flag(dr.JitFlag.KernelHistory, True):
+                params.update(opt)
 
-            dr.backward(loss)
+                vol = mi.render(scene, params, integrator=integrator, sensor=sensor, spp=spp, spp_grad=spp_grad, seed=i)
+                dr.schedule(vol)
 
-            if dr.all(loss == 0):
-                print("Converged")
-                break
+                mi.Log(mi.LogLevel.Debug, "[drtvam] Calling loss from optimize loop")
+                loss = loss_fn(vol, target, params['projector.active_data'])
+                dr.eval(loss)
 
-            if optim_type == 'lbfgs':
-                opt.step(vol, loss)
-            else:
-                opt.step()
+                # numpy conversion is necessary to store the loss value
+                # apparently in just loss.numpy() is deprecated since (Deprecated NumPy 1.25.)
+                loss_hist[i] = loss[0].numpy()
 
-            # Clamp patterns
-            opt[patterns_key] = dr.maximum(dr.detach(opt[patterns_key]), 0)
+                # Primal timing
+                timing_hist[i, 0] = sum([h['execution_time'] for h in dr.kernel_history() if h['type'] == dr.KernelType.JIT])
 
-            # Adjoint timing
-            timing_hist[i, 1] = sum([h['execution_time'] for h in dr.kernel_history() if h['type'] == dr.KernelType.JIT])
+                dr.backward(loss)
+
+                if dr.all(loss == 0):
+                    print("Converged")
+                    break
+
+                if optim_type == 'lbfgs':
+                    opt.step(vol, loss)
+                else:
+                    opt.step()
+
+                # Clamp patterns
+                opt[patterns_key] = dr.maximum(dr.detach(opt[patterns_key]), 0)
+
+                # Adjoint timing
+                timing_hist[i, 1] = sum([h['execution_time'] for h in dr.kernel_history() if h['type'] == dr.KernelType.JIT])
+        params.update(opt)
 
     integrator_final = mi.load_dict({
         'type': 'volume',
@@ -270,7 +294,6 @@ def optimize(config):
     })
 
     print("Rendering final state...")
-    params.update(opt)
     vol_final = mi.render(scene, params, spp=spp_ref, integrator=integrator_final, sensor=final_sensor)
 
     np.save(os.path.join(output, "final.npy"), vol_final.numpy())
