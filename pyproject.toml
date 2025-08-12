@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 [project]
 name = "drtvam"
-version = "0.4.0"
+version = "0.4.1"
 authors = [
   { name="Baptiste Nicolet", email="baptiste.nicolet@epfl.ch" },
   { name="Felix Wechsler", email="fxw+git@mailbox.org" },
@@ -12,7 +12,7 @@ description = "An inverse rendering framework for tomographic volumetric additiv
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
-    "mitsuba>=3.6.4",
+    "mitsuba>=3.7.0",
     "numpy",
     "tqdm",
     "matplotlib"

@@ -22,8 +22,8 @@ class VolumetricSensor(mi.Sensor):
         self.volumes = None
 
     def traverse(self, callback):
-        callback.put_parameter("to_world", self.to_world, mi.ParamFlags.NonDifferentiable)
-        callback.put_object("film", self.m_film, mi.ParamFlags.Differentiable)
+        callback.put("to_world", self.to_world, mi.ParamFlags.NonDifferentiable)
+        callback.put("film", self.m_film, mi.ParamFlags.Differentiable)
 
     def resolution(self):
         return self.m_film.resolution()
@@ -189,7 +189,7 @@ class DeltaVolumetricSensor(VolumetricSensor):
                 dr.scatter_reduce(dr.ReduceOp.Add, δL.array, dr.forward_to(contrib), idx, active & is_inside_grid)
 
         return g_em, g_ss, g_st
-    
+
 class RatioVolumetricSensor(VolumetricSensor):
     def __init__(self, props):
         super().__init__(props)
