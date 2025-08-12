@@ -281,5 +281,5 @@ class VolumeIntegrator(TVAMIntegrator):
 
         return sensor.film().develop() if is_primal else δL
 
-mi.register_integrator("volume", VolumeIntegrator)
+mi.register_integrator("volumeintegrator", VolumeIntegrator)
 

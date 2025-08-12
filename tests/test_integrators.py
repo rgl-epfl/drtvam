@@ -27,7 +27,7 @@ def build_scene(method):
             }
         },
         'integrator': { 
-            'type': 'volume',
+            'type': 'volumeintegrator',
             'print_time': 1, # To match previous implementation
             'max_depth': 32,
             'rr_depth': 3,

@@ -21,7 +21,7 @@ def test_crop(variant):
     })
 
     integrator = mi.load_dict({
-        "type": "volume",
+        "type": "volumeintegrator",
         "print_time": 1.
     })
     sampler = mi.load_dict({'type': 'independent'})

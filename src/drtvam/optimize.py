@@ -119,7 +119,7 @@ def optimize(config, patterns_fwd=None):
     filter_radon = config.get('filter_radon', False) # Disable DMD pixels where the Radon transform is zero
 
     integrator = mi.load_dict({
-        'type': 'volume',
+        'type': 'volumeintegrator',
         'max_depth': 3 if progressive else max_depth,
         'rr_depth': rr_depth,
         'print_time': time,
@@ -229,7 +229,7 @@ def optimize(config, patterns_fwd=None):
     timing_hist = np.zeros((n_steps, 2))
 
     integrator_final = mi.load_dict({
-        'type': 'volume',
+        'type': 'volumeintegrator',
         'max_depth': config.get('max_depth_ref', 16),
         'rr_depth': config.get('rr_depth_ref', 8),
         'transmission_only': transmission_only,
