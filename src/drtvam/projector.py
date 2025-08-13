@@ -129,8 +129,8 @@ class TVAMProjector(mi.Emitter):
         return patterns
 
     def traverse(self, callback):
-        callback.put_parameter("active_data", self.active_data, mi.ParamFlags.Differentiable)
-        callback.put_parameter("active_pixels", self.active_pixels, mi.ParamFlags.NonDifferentiable)
+        callback.put("active_data", self.active_data, mi.ParamFlags.Differentiable)
+        callback.put("active_pixels", self.active_pixels, mi.ParamFlags.NonDifferentiable)
 
     def parameters_changed(self, keys):
         # check if active_mask_new has no True field where it was False before, i.e. we can't reactivate pixels after disabling them

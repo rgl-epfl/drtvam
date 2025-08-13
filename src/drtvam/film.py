@@ -29,7 +29,7 @@ class VolumetricFilm(mi.Film):
         self.data = dr.zeros(mi.TensorXf, self.data.shape)
 
     def traverse(self, callback):
-        callback.put_parameter("data", self.data, mi.ParamFlags.Differentiable)
+        callback.put("data", self.data, mi.ParamFlags.Differentiable)
 
     def resolution(self):
         return self.res

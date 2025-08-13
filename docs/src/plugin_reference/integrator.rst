@@ -20,7 +20,7 @@ It can be loaded as a Mitsuba plugin:
 .. code-block:: python
 
     integrator = mi.load_dict({
-        'type': 'volume',
+        'type': 'volumeintegrator',
         'print_time': 20.0,
     })
 
