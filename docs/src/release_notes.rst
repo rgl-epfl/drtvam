@@ -5,6 +5,13 @@ Being an experimental research framework, Dr.TVAM does not strictly follow the
 `Semantic Versioning <https://semver.org/>`_ convention. That said, we will
 strive to document breaking API changes in the release notes below.
 
+
+Dr. TVAM 0.5.0
+--------------
+*August 13, 2025*
+
+- Introduce support for Mitusba 3.7.0 `[#50] <https://github.com/rgl-epfl/drtvam/pull/50>`_
+
 Dr. TVAM 0.4.0
 --------------
 *August 6, 2025*
