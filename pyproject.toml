@@ -12,7 +12,7 @@ description = "An inverse rendering framework for tomographic volumetric additiv
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
-    "mitsuba>=3.7.0",
+    "mitsuba==3.7.0",
     "numpy",
     "tqdm",
     "matplotlib"
