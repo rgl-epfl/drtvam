@@ -81,7 +81,7 @@ various aspects of the optimization:
         will be centered at the coordinates ``(2, 3, 4)`` after the target
         has been scaled to ``size``.
         If ``scale_and_center`` is set to ``false``, the target shape will not be
-        scaled or centered, by default it is set to ``true``.
+        scaled and centered, by default it is set to ``true``.
 
 Other entries are optional:
 
