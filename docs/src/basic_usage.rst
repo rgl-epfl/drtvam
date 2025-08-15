@@ -80,6 +80,8 @@ various aspects of the optimization:
         ``"box_center_y": 3``, and ``"box_center_z": 4``, the target shape box 
         will be centered at the coordinates ``(2, 3, 4)`` after the target
         has been scaled to ``size``.
+        If ``scale_and_center`` is set to ``false``, the target shape will not be
+        scaled and centered, by default it is set to ``true``.
 
 Other entries are optional:
 
