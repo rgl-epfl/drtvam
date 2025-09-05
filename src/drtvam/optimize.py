@@ -3,12 +3,14 @@ import mitsuba as mi
 import drjit as dr
 import numpy as np
 import os
+import tqdm
 from tqdm import trange
 import json
 import argparse
 
 from drtvam.geometry import geometries
-from drtvam.utils import save_img, save_vol, save_histogram, discretize
+from drtvam.utils import save_img, save_vol, save_histogram, discretize, iou_loss, bhattacharyya_distance_coefficient
+from drtvam.utils import wasserstein_distance_volumes
 from drtvam.loss import losses
 from drtvam.lbfgs import LinearLBFGS
 
@@ -351,8 +353,8 @@ def optimize(config, patterns_fwd=None):
     # save also the compressed version normalized to [0, 255]
     # Step 1: Normalize the array to [0, 1]
     array = imgs_final.numpy()
-    array_max = np.max(array)
-    normalized_array = array / array_max
+    max_intensity_pattern = np.max(array)
+    normalized_array = array / max_intensity_pattern
     # Step 2: Scale to [0, 255]
     scaled_array = normalized_array * 255
     # Step 3: Convert to np.uint8
@@ -369,8 +371,49 @@ def optimize(config, patterns_fwd=None):
     efficiency = np.sum(normalized_array / normalized_array.size)
     print("Pattern efficiency {:.4f}".format(efficiency))
 
+
+    # test a range from 0 to 1.3
+    print("Finding threshold for best IoU ...")
+    thresholds = np.linspace(0, 1.3, 300)
+    ious = [iou_loss(vol, target, t)[0] for t in tqdm.tqdm(thresholds)]
+    iou = max(ious)
+    best_threshold = np.argmax(np.array(ious))
+    # best print
+    bhat_dist, bhat_coef = bhattacharyya_distance_coefficient(target, vol_final)
+    wd = wasserstein_distance_volumes(target, vol_final)
+
+    print("Best IoU: {:.4f}".format(iou))
+    print("Best threshold: {:4f}".format(thresholds[best_threshold]))
+
+
+    # depending on the loss function the maximum pixel might be different
+    # With a DMD in practice, this means the real printing time is different
+    # with the best_threshold_normalized we know the absolute scaling
+    # meaning, if the best_threshold_normalized is a factor of 2 larger to
+    # another optimization with different parameters, this means we need a
+    # factor of 2 less energy dose in practice.
+    best_threshold_normalized = thresholds[best_threshold] / max_intensity_pattern
+
+    # convert all to float
+    export_data = {
+        "efficiency": float(efficiency),
+        "iou": float(iou),
+        "best_threshold": float(thresholds[best_threshold]),
+        "best_threshold_normalized": float(best_threshold_normalized),
+        "max_intensity_pattern": float(max_intensity_pattern),
+        "bhattacharyya_distance": float(bhat_dist),
+        "bhattacharyya_coefficient": float(bhat_coef),
+        "wasserstein_distance": float(wd),
+        "relative_time": float(1 / best_threshold_normalized)
+    }
+
+
+    with open(os.path.join(output, "output_metrics.json"), 'w') as f:
+        json.dump(export_data, f, indent=4)
+
+
     save_histogram(vol_final, target, os.path.join(output, "histogram.png"),
-                   efficiency, array_max)
+                   efficiency, iou, thresholds, best_threshold, best_threshold_normalized)
 
     return vol_final
 
