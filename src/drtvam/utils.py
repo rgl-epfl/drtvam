@@ -10,6 +10,50 @@ def iou_loss(pred, target, threshold=0.9):
     thresholded = pred.array > threshold
     return mi.Float(dr.count(thresholded & obj_mask)) / dr.count(thresholded | obj_mask)
 
+
+def wasserstein_distance_volumes(target, vol):
+    from scipy.stats import wasserstein_distance
+
+    obj_mask = target.numpy().flatten() > 0.
+    voxels_final = vol.numpy().flatten()
+
+    p = voxels_final[obj_mask]
+    q = voxels_final[~obj_mask]
+
+    return wasserstein_distance(p, q)
+
+
+
+def bhattacharyya_distance_coefficient(target, vol):
+    # Create bins
+    num_bins = 1000
+    bins = np.linspace(0, 1.5, num_bins)
+
+    obj_mask = target.numpy().flatten() > 0.
+    voxels_final = vol.numpy().flatten()
+
+    # Get values inside and outside object
+    p = voxels_final[obj_mask]
+    q = voxels_final[~obj_mask]
+
+    # Create histograms
+    p_b, _ = np.histogram(p, bins)
+    q_b, _ = np.histogram(q, bins)
+
+    # Normalize to probabilities
+    p_b = p_b / np.sum(p_b)
+    q_b = q_b / np.sum(q_b)
+
+    # Calculate Bhattacharyya coefficient with epsilon
+    bc = np.sum(np.sqrt(p_b * q_b))
+
+    # Calculate distance with epsilon to avoid log(0)
+    bd = -np.log(bc)
+
+    return bd, bc
+
+
+
 def reshape_grid(array):
     if len(array.shape) == 3:
         n, h, w = array.shape
@@ -45,35 +89,18 @@ def save_vol(vol, path):
     bmp = mi.Bitmap(mi.TensorXf(reshape_grid(vol)))
     bmp.write(path)
 
-def save_histogram(vol, target, filename, efficiency, max_pattern_intensity):
+def save_histogram(vol, target, filename, efficiency, iou, thresholds, best_threshold, best_threshold_normalized):
     fig = plt.figure(figsize=(10, 5))
     obj_mask = target.numpy().flatten() > 0.
-
     voxels_final = vol.numpy().flatten()
     bins = np.linspace(0, 1, 500)
     plt.hist(voxels_final[obj_mask], bins=500, label="Object", alpha=0.55)
     plt.hist(voxels_final[~obj_mask], bins=500, label="Empty", alpha=0.55)
 
-    # test a range from 0 to 1.3
-    print("Finding threshold for best IoU ...")
-    thresholds = np.linspace(0, 1.3, 300)
-    ious = [iou_loss(vol, target, t)[0] for t in tqdm(thresholds)]
-    iou = max(ious)
-    best_threshold = np.argmax(np.array(ious))
-    print("Best IoU: {:.4f}".format(iou))
-    print("Best threshold: {:4f}".format(thresholds[best_threshold]))
-
-
-    # depending on the loss function the maximum pixel might be different
-    # With a DMD in practice, this means the real printing time is different
-    # with the best_threshold_normalized we know the absolute scaling
-    # meaning, if the best_threshold_normalized is a factor of 2 larger to
-    # another optimization with different parameters, this means we need a
-    # factor of 2 less energy dose in practice.
-    best_threshold_normalized = thresholds[best_threshold] / max_pattern_intensity
     plt.xlim([0, 1.2])
     plt.title("pattern energy efficiency = {:.4f}, IoU = {:.4f} at threshold = {:.3f}, normalized threshold = {:.3f}".\
-              format(efficiency, iou, thresholds[best_threshold], best_threshold_normalized))
+              format(efficiency, iou, thresholds[best_threshold],
+                     best_threshold_normalized))
     plt.yscale('log')
     plt.ylabel("# Voxels")
     plt.xlabel("Received dose")
