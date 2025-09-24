@@ -375,7 +375,7 @@ def optimize(config, patterns_fwd=None):
     # test a range from 0 to 1.3
     print("Finding threshold for best IoU ...")
     thresholds = np.linspace(0, 1.3, 300)
-    ious = [iou_loss(vol, target, t)[0] for t in tqdm.tqdm(thresholds)]
+    ious = [iou_loss(vol_final, target, t)[0] for t in tqdm.tqdm(thresholds)]
     iou = max(ious)
     best_threshold = np.argmax(np.array(ious))
     # best print
