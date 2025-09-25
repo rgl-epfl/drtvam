@@ -151,7 +151,10 @@ def optimize(config, patterns_fwd=None):
         # Deactivate pixels where the Radon transform is zero
         radon_integrator = mi.load_dict({
             'type': 'radon',
-            'max_depth': 5,
+            'max_depth': max_depth,
+            'rr_depth': rr_depth,
+            'print_time': time,
+            'transmission_only': transmission_only
         })
         radon = mi.render(scene, integrator=radon_integrator, spp=config.get('spp_filter_radon', 4))
 
