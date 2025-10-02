@@ -252,10 +252,13 @@ def optimize(config, patterns_fwd=None):
     if patterns_fwd is not None:
         print("Using provided patterns for forward mode.")
 
+
+        # do not load everything but just the ones which are active
         if filter_radon  or 'filter_corner' in config:
             params['projector.active_data'] = patterns_fwd.flatten()[params['projector.active_pixels']]
         else:
-            params['projector.active_data'] = patterns_fwd.flatten()
+            params['projector.active_data'] = patterns_fwd.flatten()[params['projector.active_pixels']]
+
         params.update()
 
     elif "psf_analysis" in config:
