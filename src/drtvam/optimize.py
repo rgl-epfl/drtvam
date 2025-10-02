@@ -149,7 +149,7 @@ def optimize(config, patterns_fwd=None):
 
     patterns_key = 'projector.active_data'
 
-    if filter_radon and patterns_fwd is None:
+    if filter_radon:
         # Deactivate pixels where the Radon transform is zero
         radon_integrator = mi.load_dict({
             'type': 'radon',
@@ -175,7 +175,7 @@ def optimize(config, patterns_fwd=None):
         dr.sync_thread()
 
 
-    if 'filter_corner' in config and patterns_fwd is None:
+    if 'filter_corner' in config:
         corner_integrator = mi.load_dict({
             'type': 'corner',
             'regular_sampling': True,
@@ -251,7 +251,11 @@ def optimize(config, patterns_fwd=None):
 
     if patterns_fwd is not None:
         print("Using provided patterns for forward mode.")
-        params['projector.active_data'] = patterns_fwd.flatten()
+
+        if filter_radon  or 'filter_corner' in config:
+            params['projector.active_data'] = patterns_fwd.flatten()[params['projector.active_pixels']]
+        else:
+            params['projector.active_data'] = patterns_fwd.flatten()
         params.update()
 
     elif "psf_analysis" in config:
