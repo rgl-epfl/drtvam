@@ -168,6 +168,13 @@ def optimize(config, patterns_fwd=None):
 
         params['projector.active_pixels'] = active_pixels
         params[patterns_key] = dr.zeros(mi.Float, dr.width(active_pixels))
+
+
+        if patterns_fwd is not None:
+            print("Using provided patterns for forward mode.")
+            params['projector.active_data'] = patterns_fwd.flatten()[active_pixels]
+
+
         params.update()
 
         del radon, radon_integrator
@@ -190,6 +197,11 @@ def optimize(config, patterns_fwd=None):
 
         params['projector.active_pixels'] = active_pixels
         params[patterns_key] = dr.zeros(mi.Float, dr.width(active_pixels))
+
+        if patterns_fwd is not None:
+            print("Using provided patterns for forward mode.")
+            params['projector.active_data'] = patterns_fwd.flatten()[active_pixels]
+
         params.update()
 
         del corner, corner_integrator
@@ -249,12 +261,8 @@ def optimize(config, patterns_fwd=None):
         'print_time': time
     })
 
-    if patterns_fwd is not None:
-        print("Using provided patterns for forward mode.")
-        params['projector.active_data'] = patterns_fwd.flatten()
-        params.update()
 
-    elif "psf_analysis" in config:
+    if "psf_analysis" in config:
         print("\nPSF analysis enabled.")
         print("Exporting ray tracing...")
         # we simply loop over the entries specified in the json
