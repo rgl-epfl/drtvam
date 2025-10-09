@@ -26,6 +26,7 @@ class Container:
         self.albedo = medium['albedo'] # Purely absorptive by default
         # add some occlusions
         self.occlusions = params.get('occlusions', [])
+        self.ior_surrounding = params.get('ior_surrounding', 1.0)
 
         if 'phase' in medium.keys():
             self.medium_phase = medium['phase']
@@ -118,7 +119,7 @@ class CustomVial(Container):
                 'bsdf': {
                     'type': 'dielectric',
                     'int_ior': self.vial_ior,
-                    'ext_ior': "air",
+                    'ext_ior': self.ior_surrounding,
                 },
             },
             'vial_interior': {
@@ -161,7 +162,7 @@ class CylindricalVial(Container):
                 'bsdf': {
                     'type': 'dielectric',
                     'int_ior': self.vial_ior,
-                    'ext_ior': "air",
+                    'ext_ior': self.ior_surrounding,
                 },
             },
             'vial_interior': {
@@ -201,6 +202,7 @@ class SquareVial(Container):
                 'bsdf': {
                     'type': 'dielectric',
                     'int_ior': self.vial_ior,
+                    'ext_ior': self.ior_surrounding,
                 },
             },
             'vial_interior': {
@@ -266,6 +268,7 @@ class DoubleCylindricalVial(Container):
                 'bsdf': {
                     'type': 'dielectric',
                     'int_ior': self.vial_ior_outer,
+                    'ext_ior': self.ior_surrounding,
                 },
             },
             'outer_vial_interior': {

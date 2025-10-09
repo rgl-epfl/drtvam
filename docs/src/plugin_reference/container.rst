@@ -92,6 +92,8 @@ dictionary should contain the following entries:
       - ``float``
       - The refractive index of the medium.
 
+
+
 Container geometry
 ------------------
 
@@ -132,6 +134,11 @@ the following parameters:
       - ``dict``
       - The medium dictionary, as described above.
 
+    * - ``ior_surrounding``
+      - ``float``
+      - (Optional) The refractive index of the surrounding medium. If not
+        specified, it is assumed to be 1.0 (air). 
+
 Cylindrical vial (``cylindrical``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -167,6 +174,11 @@ dielectric interfaces. It takes the following parameters:
     * - ``medium``
       - ``dict``
       - The medium dictionary, as described above.
+    
+    * - ``ior_surrounding``
+      - ``float``
+      - (Optional) The refractive index of the surrounding medium. If not
+        specified, it is assumed to be 1.0 (air). 
 
 Square vial (``square``)
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -202,6 +214,11 @@ spectroscopy cuvette. It takes the following parameters:
     * - ``medium``
       - ``dict``
       - The medium dictionary, as described above.
+
+    * - ``ior_surrounding``
+      - ``float``
+      - (Optional) The refractive index of the surrounding medium. If not
+        specified, it is assumed to be 1.0 (air). 
 
 
 
@@ -255,6 +272,10 @@ dielectric interfaces. It takes the following parameters:
       - ``dict``
       - The medium dictionary, as described above.
 
+    * - ``ior_surrounding``
+      - ``float``
+      - (Optional) The refractive index of the surrounding medium. If not
+        specified, it is assumed to be 1.0 (air). 
 
 
 Custom vial (``custom``)
@@ -288,6 +309,11 @@ Be sure that both mesh normals point outward.
     * - ``medium``
       - ``dict``
       - The medium dictionary, as described above.
+
+    * - ``ior_surrounding``
+      - ``float``
+      - (Optional) The refractive index of the surrounding medium. If not
+        specified, it is assumed to be 1.0 (air). 
 
 
 
