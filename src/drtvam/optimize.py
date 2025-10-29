@@ -87,7 +87,7 @@ def load_scene(config):
 
     return scene_dict
 
-def optimize(config, patterns_fwd=None):
+def optimize(config, patterns_fwd=None, forward_mode=False):
     """
 
     Optimize the patterns for the TVAM.
@@ -234,7 +234,6 @@ def optimize(config, patterns_fwd=None):
         opt = LinearLBFGS(loss_fn=loss_fn2, render_fn=render_fn)
 
     # Pass patterns to optimizer
-    opt[patterns_key] = params[patterns_key]
     n_steps = config.get('n_steps', 40)
 
     loss_hist = np.zeros(n_steps)
@@ -250,8 +249,22 @@ def optimize(config, patterns_fwd=None):
     })
 
     if patterns_fwd is not None:
-        print("Using provided patterns for forward mode.")
+        print("Using provided patterns as initialization.")
 
+        # do not load everything but just the ones which are active
+        if filter_radon  or 'filter_corner' in config:
+            params['projector.active_data'] = patterns_fwd.flatten()[params['projector.active_pixels']]
+        else:
+            params['projector.active_data'] = patterns_fwd.flatten()[params['projector.active_pixels']]
+
+        params.update()
+
+    # pass to optimizer
+    opt[patterns_key] = params[patterns_key]
+
+
+    if patterns_fwd is not None and forward_mode:
+        print("Using provided patterns for forward mode.")
 
         # do not load everything but just the ones which are active
         if filter_radon  or 'filter_corner' in config:
@@ -490,12 +503,13 @@ def main():
     with open(os.path.join(config['output'], "opt_config.json"), 'w') as f:
         json.dump(config, f, indent=4)
 
-    if args.forward_mode:
+    if args.patterns is not None:
         # Forward mode: just project the patterns
-        if 'patterns' not in args:
-            raise ValueError("In forward mode, you must specify the patterns file.")
         patterns = np.load(args.patterns)['patterns']
-        optimize(config, patterns_fwd=patterns)
+        if args.forward_mode:
+            optimize(config, patterns_fwd=patterns, forward_mode=True)
+        else:
+            optimize(config, patterns_fwd=patterns, forward_mode=False)
     else:
         # Run the optimization
         optimize(config)
