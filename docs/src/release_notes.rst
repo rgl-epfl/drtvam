@@ -6,6 +6,17 @@ Being an experimental research framework, Dr.TVAM does not strictly follow the
 strive to document breaking API changes in the release notes below.
 
 
+Dr. TVAM 0.6.0
+--------------
+*November 19, 2025*
+
+- Option to disable scaling of the `target.ply` with `scale_and_center=false`. Default is `true` as before. See `[this commit] <https://github.com/rgl-epfl/drtvam/commit/30dcf2b83013f0c0904bc58a72afe8e7025f928f>`_
+- Introduce a `output_metrics.json` which provides some numerical metrics to judge final optimization quality. `[#54] <https://github.com/rgl-epfl/drtvam/pull/54>`_
+- Apply `max_depth`,`rr_depth` also to radon integrator (important for `filter_radon`). See `[#56] <https://github.com/rgl-epfl/drtvam/pull/56>`_
+- Add vial option `surrounding_ior` to specifiy a medium around the vial (such as water index around a glass vial). `[#58] <https://github.com/rgl-epfl/drtvam/pull/58>`_
+
+
+
 Dr. TVAM 0.5.0
 --------------
 *August 13, 2025*
