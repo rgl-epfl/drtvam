@@ -45,5 +45,5 @@
         "tu": 0.95
     },
     "progressive": true,
-    "n_steps": 30
+    "n_steps": 4
 }
