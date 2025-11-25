@@ -22,6 +22,7 @@ particular, we support:
   container motion. 
 * Optimizing patterns for TVAM with our surface-aware
   discretization.
+* High-performance, see also :ref:`performance_tips` 
 
 Installation
 ------------
