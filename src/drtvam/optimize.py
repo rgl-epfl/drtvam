@@ -7,12 +7,15 @@ import tqdm
 from tqdm import trange
 import json
 import argparse
+import torch
+import copy
 
 from drtvam.geometry import geometries
 from drtvam.utils import save_img, save_vol, save_histogram, discretize, iou_loss, bhattacharyya_distance_coefficient
 from drtvam.utils import wasserstein_distance_volumes
 from drtvam.loss import losses
 from drtvam.lbfgs import LinearLBFGS
+from drtvam.diffusion import fft_convolve_3d, convert_volume
 
 def load_scene(config):
     for key in ['target', 'vial', 'projector', 'sensor']:
@@ -95,6 +98,7 @@ def optimize(config, patterns_fwd=None):
         config (dict): Configuration dictionary containing the scene and optimization parameters.
         patterns_fwd (np.ndarray, optional): if provided, the actual optimization is skipped
     """
+    config_initial = copy.deepcopy(config)
     scene_dict = load_scene(config)
     scene = mi.load_dict(scene_dict)
     params = mi.traverse(scene)
@@ -113,6 +117,30 @@ def optimize(config, patterns_fwd=None):
     regular_sampling = config.get('regular_sampling', False)
     sensor = None
     final_sensor = None
+
+
+    if "diffusion" in config_initial:
+        print("Using diffusion model for oxygen inhibition.")
+        diffusion_D = config_initial['diffusion'].get('D', None)
+        diffusion_time = config_initial['diffusion'].get('printing_time', None)
+        diffusion_number_rotations = config_initial['diffusion'].get('number_rotations', 1)
+        x = torch.linspace(-config_initial['sensor']['scalex'] / 2, config_initial['sensor']['scalex'] / 2, config_initial['sensor']['film']['resx']).to('cuda')
+        y = torch.linspace(-config_initial['sensor']['scaley'] / 2, config_initial['sensor']['scaley'] / 2, config_initial['sensor']['film']['resy']).to('cuda')
+        z = torch.linspace(-config_initial['sensor']['scalez'] / 2, config_initial['sensor']['scalez'] / 2, config_initial['sensor']['film']['resz']).to('cuda')
+        X, Y, Z = torch.meshgrid(z, x, y, indexing='ij')
+
+        diffusion_kernel = 0 * X
+
+        delta_t = diffusion_time / diffusion_number_rotations
+        for n in range(diffusion_number_rotations):
+            r = torch.sqrt(X**2 + Y**2 + Z**2)
+            diffusion_kernel += torch.exp(-r**2 / (4 * diffusion_D * delta_t * (n+0.5))) / ((4 * np.pi * (n + 0.5) * diffusion_D * delta_t)**(3/2))
+
+        diffusion_kernel /= torch.sum(diffusion_kernel)
+
+        diffusion_kernel = torch.fft.ifftshift(diffusion_kernel)
+        diffusion_kernel = diffusion_kernel[:, :, :, None]
+
     for s in scene.sensors():
         if s.id() == 'sensor':
             sensor = s
@@ -304,6 +332,10 @@ def optimize(config, patterns_fwd=None):
                 params.update(opt)
 
                 vol = mi.render(scene, params, integrator=integrator, sensor=sensor, spp=spp, spp_grad=spp_grad, seed=i)
+
+                vol_torch = convert_volume(vol)
+                print(type(vol_torch), type(diffusion_kernel))
+                vol = fft_convolve_3d(vol, diffusion_kernel)
                 dr.schedule(vol)
 
                 mi.Log(mi.LogLevel.Debug, "[drtvam] Calling loss from optimize loop")
