@@ -15,3 +15,4 @@ tutorials:
     real_world_example.rst 
     projector_calibration.rst 
     forward_projection.rst 
+    performance_tips.rst
