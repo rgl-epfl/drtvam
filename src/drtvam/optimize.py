@@ -142,7 +142,9 @@ def optimize(config, patterns_fwd=None):
         diffusion_kernel = torch.fft.ifftshift(diffusion_kernel)
         diffusion_kernel = diffusion_kernel[:, :, :, None]
 
+
         diffusion_kernel_drjit = dr.cuda.TensorXf(diffusion_kernel)
+        np.save(os.path.join(output, "diffusion_kernel.npy"), np.fft.fftshift(diffusion_kernel_drjit.numpy()))
 
 
     for s in scene.sensors():
