@@ -124,9 +124,10 @@ def optimize(config, patterns_fwd=None):
         diffusion_D = config_initial['diffusion'].get('D', None)
         diffusion_time = config_initial['diffusion'].get('printing_time', None)
         diffusion_number_rotations = config_initial['diffusion'].get('number_rotations', 1)
-        x = torch.linspace(-config_initial['sensor']['scalex'] / 2, config_initial['sensor']['scalex'] / 2, config_initial['sensor']['film']['resx']).to('cuda')
-        y = torch.linspace(-config_initial['sensor']['scaley'] / 2, config_initial['sensor']['scaley'] / 2, config_initial['sensor']['film']['resy']).to('cuda')
-        z = torch.linspace(-config_initial['sensor']['scalez'] / 2, config_initial['sensor']['scalez'] / 2, config_initial['sensor']['film']['resz']).to('cuda')
+        # endpoint false is required to center kernel correctly
+        x = torch.linspace(-config_initial['sensor']['scalex'] / 2, config_initial['sensor']['scalex'] / 2, config_initial['sensor']['film']['resx']+1)[:-1].to('cuda')
+        y = torch.linspace(-config_initial['sensor']['scaley'] / 2, config_initial['sensor']['scaley'] / 2, config_initial['sensor']['film']['resy']+1)[:-1].to('cuda')
+        z = torch.linspace(-config_initial['sensor']['scalez'] / 2, config_initial['sensor']['scalez'] / 2, config_initial['sensor']['film']['resz']+1)[:-1].to('cuda')
         X, Y, Z = torch.meshgrid(z, x, y, indexing='ij')
 
         diffusion_kernel = 0 * X
@@ -140,6 +141,9 @@ def optimize(config, patterns_fwd=None):
 
         diffusion_kernel = torch.fft.ifftshift(diffusion_kernel)
         diffusion_kernel = diffusion_kernel[:, :, :, None]
+
+        diffusion_kernel_drjit = dr.cuda.TensorXf(diffusion_kernel)
+
 
     for s in scene.sensors():
         if s.id() == 'sensor':
@@ -333,9 +337,8 @@ def optimize(config, patterns_fwd=None):
 
                 vol = mi.render(scene, params, integrator=integrator, sensor=sensor, spp=spp, spp_grad=spp_grad, seed=i)
 
-                vol_torch = convert_volume(vol)
-                print(type(vol_torch), type(diffusion_kernel))
-                vol = fft_convolve_3d(vol, diffusion_kernel)
+                if "diffusion" in config_initial:
+                    vol = fft_convolve_3d(vol, diffusion_kernel_drjit)
                 dr.schedule(vol)
 
                 mi.Log(mi.LogLevel.Debug, "[drtvam] Calling loss from optimize loop")
@@ -370,6 +373,8 @@ def optimize(config, patterns_fwd=None):
 
     print("Rendering final state...")
     vol_final = mi.render(scene, params, spp=spp_ref, integrator=integrator_final, sensor=final_sensor)
+    if "diffusion" in config_initial:
+        vol_final = fft_convolve_3d(vol_final, diffusion_kernel_drjit)
 
     np.save(os.path.join(output, "final.npy"), vol_final.numpy())
     save_vol(vol_final, os.path.join(output, "final.exr"))

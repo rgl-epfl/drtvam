@@ -16,7 +16,7 @@ def convert_volume(volume):
     return volume ** 2
 
 
-@dr.wrap(source='drjit', target='torch')
+@dr.wrap(source='torch', target='drjit')
 def convert_volume_drjit(volume):
     """
     Convert a PyTorch tensor volume to a Dr.Jit tensor.
@@ -44,9 +44,6 @@ def fft_convolve_3d(volume, kernel):
     Returns:
         Convolved volume (same shape as input volume)
     """
-    # Ensure inputs are torch tensors
-    if not isinstance(volume, torch.Tensor):
-        volume = torch.tensor(volume)
 
 
     # Perform FFT on both volume and kernel
