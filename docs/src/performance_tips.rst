@@ -162,7 +162,7 @@ In this case, since our DMD is quite small, the new configuration file will run 
         },
         "transmission_only": false,
         "regular_sampling": false,
-        "filter_radon": true
+        "filter_radon": true,
         "n_steps": 40,
         "spp": 8,
         "spp_ref": 8,
@@ -259,8 +259,8 @@ For a round vial, as in this case, backreflected light is minimal. Therefore, we
 
 Reducing spp
 ----------------
-Finally, we can try to reduce the number of samples per pixel (spp) used during the optimization. In the case of no scattering or no blurred projection (for example :ref:`real lens projector <lens_projector>`), choosing a ``spp`` of 1 is often sufficient to get good results. 
-Since we use ``spp_ref`` and ``spp_grad`` only for the final reference rendering, we can keep them at 8 to check if the optimization is converging correctly.
+Finally, we can try to reduce the number of samples per pixel (spp) used during the optimization. In the case of no scattering or no blurred projection (for example :ref:`real lens projector <lens_projector>`), choosing a ``spp`` of 1 is often sufficient to get good results. We also need to reduce ``spp_grad`` to 1, which is the number of samples per pixel used to compute the gradient during optimization.
+Since we use ``spp_ref`` only for the final reference rendering, we can keep them at 8 to check if the optimization is converging correctly.
 We can also turn on ``regular_sampling`` which samples a ray from the center position of each pixel, instead of randomly sampling within the pixel area. This reduces variance and can help convergence when using low ``spp``.
 With this we could reduce the rendering time to about 0m08s
 
