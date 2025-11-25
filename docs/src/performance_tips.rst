@@ -25,6 +25,7 @@ In practice, however, several optimizations can be used to significantly reduce 
 We would definitely recommend to try our ``filter_radon``, ``transmission_only``, and reducing ``spp`` first, as they usually provide the largest speedup with minimal impact on quality.
 It is a good idea to try each of these optimizations one by one, and check the impact on both performance and quality on the patterns
 
+Also, we definitely recommend to use a CUDA enabled NVIDIA GPU to run Dr.TVAM, as the performance on CPU is significantly lower. It can be up to 10x-100x faster on an GPU depending on the parameters.
 
 Note, all patterns shown below have a gamma correction of 0.5 applied to enhance visibility.
 
@@ -417,10 +418,26 @@ For example, setting the sensor resolution to 50x50x50 will further reduce the r
   :width: 200
 
 
+Tuning iteration count
+-----------------------
+You can be also more aggressive in reducing the number of optimization iterations (n_steps). 
+Just choose a value that provides a good trade-off between quality and performance for your specific setup by checking the histogram for different values.
+
+
+Tuning number of angles
+----------------------
+Another parameter to tune is the number of projection angles (``n_patterns``). There is a theoretical lower bound on the number of angles required to reconstruct a target without artifacts which can be derived from Nyquist sampling in CT because of angular rotation (the Crowther criterion). It can be adapted and is given by 
+
+.. math::
+
+    N_\text{angles} > \pi \cdot N_{x,s}. 
+
+However, in practice, you can often get away with less angles, especially if your target is not very complex. For our prints we rarely use more than 600 angles, even for high resolution prints.
+
 Radical different approach?
 ---------------------------
 What about FFT based methods as in CT reconstruction? 
-First, in CT reconstruction, the community uses NFFT methods which provide less speed-up that classical FFT, because the sampling is not uniform.
+First, in CT reconstruction, the community uses NFFT methods which provide less speed-up that classical FFT, because the sampling is not uniform in x-y but instead depending on the radius.
 Second, in TVAM, we have a complex light transport with refraction, reflection and potentially scattering. This makes it very hard to use FFT based methods.
 Even absorption makes the light transport non-trivial to model with FFT methods (we are not aware of methods to model the attenuated Radon transform with FFTs).
 Finally, Dr.TVAM is designed to be flexible and extensible, allowing users to easily adapt it to their specific TVAM setups and requirements. This flexibility is not achievable with FFT based methods.
