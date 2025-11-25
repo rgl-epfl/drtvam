@@ -297,6 +297,10 @@ def optimize(config, patterns_fwd=None):
     else:
         print("Optimizing patterns...")
         for i in trange(n_steps):
+            vol = mi.render(scene, params, integrator=integrator, sensor=sensor, spp=spp, spp_grad=spp_grad, seed=i)
+            np.save(os.path.join(output, f"final_{i:03d}.npy"), vol.numpy())
+            imgs = scene.emitters()[0].patterns()
+            np.save(os.path.join(output, f"patterns_{i:03d}.npy"), imgs.numpy())
             if progressive and i == 5:
                 integrator.max_depth = max_depth
 
@@ -333,7 +337,8 @@ def optimize(config, patterns_fwd=None):
 
                 # Adjoint timing
                 timing_hist[i, 1] = sum([h['execution_time'] for h in dr.kernel_history() if h['type'] == dr.KernelType.JIT])
-        params.update(opt)
+
+            params.update(opt)
 
 
     print("Rendering final state...")
