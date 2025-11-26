@@ -55,6 +55,8 @@ values.
 It requires no additional parameter. We do not recommend using this loss as 
 the ``ThresholdedLoss`` provides better results and allows for finer control.
 
+
+.. _thresholded-loss:
 Thresholded loss (``ThresholdedLoss``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
