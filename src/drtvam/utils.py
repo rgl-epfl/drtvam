@@ -23,6 +23,37 @@ def wasserstein_distance_volumes(target, vol):
     return wasserstein_distance(p, q)
 
 
+def calculate_absorbed_dose(config, pattern_efficiency, target, vol, patterns):
+    pixel_size = config["projector"]["pixel_size"]
+
+    # projected intensity in drtvam units
+    projected_intensity_drtvam_units = dr.sum(patterns) * pixel_size**2
+    voxel_volume = (config["sensor"]["scalex"] / config["sensor"]["film"]["resx"] * \
+                    config["sensor"]["scaley"] / config["sensor"]["film"]["resy"] * \
+                    config["sensor"]["scalez"] / config["sensor"]["film"]["resz"])
+
+    # absorbed intensity in target in drtvam units
+    absorbed_intensity_target_drtvam_units = dr.sum(vol * target) * voxel_volume
+
+
+    # amount of target voxels times voxel volume to get total volume of target
+    total_voxel_volume_target = dr.sum(target) * voxel_volume * 1e-3**3
+
+    # this ratio value needs to be between 0 and 1
+    # it describes how much of the projected intensity is absorbed in the target volume
+    # print("ratio", absorbed_intensity_target_drtvam_units / projected_intensity_drtvam_units)
+
+
+    # I am not sure why but it seems like we need to multiply by 1e-3 to get
+    # the units right? but it should be unitless already. But somehow it still
+    # has a millimeter -> meter error in there.
+    ratio = 1e-3 * absorbed_intensity_target_drtvam_units / projected_intensity_drtvam_units
+
+    # needs need to be multiplied with total power of DMD times printing_time
+    # to obtain J/m^3. Right now the units are 1/m^3
+    absorbed_dose = pattern_efficiency * ratio / total_voxel_volume_target
+    return absorbed_dose
+
 
 def bhattacharyya_distance_coefficient(target, vol):
     # Create bins

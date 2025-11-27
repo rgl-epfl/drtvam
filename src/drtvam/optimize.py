@@ -10,9 +10,11 @@ import argparse
 
 from drtvam.geometry import geometries
 from drtvam.utils import save_img, save_vol, save_histogram, discretize, iou_loss, bhattacharyya_distance_coefficient
-from drtvam.utils import wasserstein_distance_volumes
+from drtvam.utils import wasserstein_distance_volumes, calculate_absorbed_dose
 from drtvam.loss import losses
 from drtvam.lbfgs import LinearLBFGS
+
+import copy
 
 def load_scene(config):
     for key in ['target', 'vial', 'projector', 'sensor']:
@@ -87,6 +89,8 @@ def load_scene(config):
 
     return scene_dict
 
+
+
 def optimize(config, patterns_fwd=None):
     """
 
@@ -95,6 +99,9 @@ def optimize(config, patterns_fwd=None):
         config (dict): Configuration dictionary containing the scene and optimization parameters.
         patterns_fwd (np.ndarray, optional): if provided, the actual optimization is skipped
     """
+    # load_scene(config) deletes some values
+    config_copy = copy.deepcopy(config)
+
     scene_dict = load_scene(config)
     scene = mi.load_dict(scene_dict)
     params = mi.traverse(scene)
@@ -383,7 +390,6 @@ def optimize(config, patterns_fwd=None):
     best_threshold = np.argmax(np.array(ious))
     # best print
     bhat_dist, bhat_coef = bhattacharyya_distance_coefficient(target, vol_final)
-    wd = wasserstein_distance_volumes(target, vol_final)
 
     print("Best IoU: {:.4f}".format(iou))
     print("Best threshold: {:4f}".format(thresholds[best_threshold]))
@@ -397,6 +403,9 @@ def optimize(config, patterns_fwd=None):
     # factor of 2 less energy dose in practice.
     best_threshold_normalized = thresholds[best_threshold] / max_intensity_pattern
 
+
+    absorbed_dose = calculate_absorbed_dose(config_copy, efficiency, target, vol_final, imgs_final)
+
     # convert all to float
     export_data = {
         "efficiency": float(efficiency),
@@ -406,9 +415,14 @@ def optimize(config, patterns_fwd=None):
         "max_intensity_pattern": float(max_intensity_pattern),
         "bhattacharyya_distance": float(bhat_dist),
         "bhattacharyya_coefficient": float(bhat_coef),
-        "wasserstein_distance": float(wd),
-        "relative_time": float(1 / best_threshold_normalized)
+        "relative_time": float(1 / best_threshold_normalized),
+        "numerical_absorbed_dose_per_cubicmeter": float(absorbed_dose)
     }
+
+    # this can be slow because scipy is calculating it on the CPU
+    if 'export_wasserstein_distance' in config and config['export_wasserstein_distance']:
+        wd = wasserstein_distance_volumes(target, vol_final)
+        export_data["wasserstein_distance"] = float(wd)
 
 
     with open(os.path.join(output, "output_metrics.json"), 'w') as f:
