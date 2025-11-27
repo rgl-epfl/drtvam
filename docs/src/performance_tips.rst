@@ -8,15 +8,16 @@ In principle, optimizing TVAM patterns has a computational complexity cost of
 
 .. math::
 
-   \mathcal{O}(N_x \cdot N_y \cdot N_{s,x} \cdot N_{s,y}  \cdot N_\text{angles} \cdot \mathrm{spp}) \approx \mathcal{O}(N^5 \cdot \mathrm{spp})
+   \mathcal{O}(N_x \cdot N_y \cdot \sqrt{N_{s,x} \cdot N_{s,y}}  \cdot N_\text{angles} \cdot \mathrm{spp}) \approx \mathcal{O}(N^4 \cdot \mathrm{spp})
 
 
 where :math:`N_x`, :math:`N_y` are the number of pixels vertically and horizontally on the detector.
 :math:`N_{s,x}`, :math:`N_{s,y}` are the number of voxels in the 3D printed object space  in each spatial dimension.
 :math:`N_\text{angles}` is the number of projection angles, and :math:`\mathrm{spp}` is the number of samples per pixel used to render each projection.
+The :math:`\sqrt` is required as the discretized volume can have rectangular shape and then the average amount of steps each ray needs to perform is proportional to :math:`\sqrt`.
 Since all these parameters need to be sufficiently high to get good quality prints, the total computation time can be significant. 
-For example, to obtain a two times better resolution in each dimension, the computation time increases by a factor of 32.
-For a factor of 4 increase in resolution, the computation time increases by a factor of 1024!
+For example, to obtain a two times better resolution in each dimension, the computation time increases by a factor of 16.
+For a factor of 4 increase in resolution, the computation time increases by a factor of 512!
 
 
 
