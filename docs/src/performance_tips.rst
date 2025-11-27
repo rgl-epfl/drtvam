@@ -14,7 +14,10 @@ In principle, optimizing TVAM patterns has a computational complexity cost of
 where :math:`N_x`, :math:`N_y` are the number of pixels vertically and horizontally on the detector.
 :math:`N_{s,x}`, :math:`N_{s,y}` are the number of voxels in the 3D printed object space  in each spatial dimension.
 :math:`N_\text{angles}` is the number of projection angles, and :math:`\mathrm{spp}` is the number of samples per pixel used to render each projection.
-The :math:`\sqrt` is required as the discretized volume can have rectangular shape and then the average amount of steps each ray needs to perform is proportional to :math:`\sqrt`.
+The :math:`\sqrt{}` is required as the discretized volume can have rectangular shape and then the average amount of steps each ray needs to perform is proportional to :math:`\sqrt{}`.
+The qualitative reasoning is, there is roughly NxN pixels on the projector. Each ray needs to be propagated N steps through the voxel volume. And then this needs to be done for N angles. If we shoot more than 1 ray per pixel, we multiply with the ``spp``.
+
+
 Since all these parameters need to be sufficiently high to get good quality prints, the total computation time can be significant. 
 For example, to obtain a two times better resolution in each dimension, the computation time increases by a factor of 16.
 For a factor of 4 increase in resolution, the computation time increases by a factor of 512!
