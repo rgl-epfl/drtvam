@@ -218,7 +218,7 @@ Overall results
 As we can see, increasing the sparsity weight improves the energy efficiency and the normalized threshold significantly. The heigher the sparsity weight, the more homogeneous the patterns become.
 In this scenario, the sparsity weight of 5.0 is a good trade-off between histogram separation and sparsity.
 Only for high values like 10.0 or 40.0, the pattern quality degrades slightly (as seen by the IoU metric).
-If we decide to go with the value of 5.0, we see almost a 10x increase in energy efficiency compared to no sparsity regularization. That means, the final print will required 10x less energy dose (which depends on laser power times exposure time) to print the object.
+If we decide to go with the value of 5.0, we see almost a 10x increase in energy efficiency compared to no sparsity regularization. That means, the final print will required 10x less laser power (or printing time) to print the object since the patterns are more efficient in converting that laser power to absorbed dose.
 
 +------------------+------+-----------------+------------------------+
 | sparsity_weight  | tl   | pattern energy  | normalized threshold   |
