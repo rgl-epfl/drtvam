@@ -31,11 +31,10 @@ def convert_volume_drjit(volume):
     return volume
 
 
-
 @dr.wrap(source='drjit', target='torch')
 def fft_convolve_3d(volume, kernel):
     """
-    Perform 3D FFT-based convolution compatible with Dr.Jit AD.
+    Perform 3D FFT-based convolution using rFFT for real-valued inputs.
 
     Args:
         volume: 3D volume tensor (D, H, W)
@@ -45,15 +44,15 @@ def fft_convolve_3d(volume, kernel):
         Convolved volume (same shape as input volume)
     """
 
-
-    # Perform FFT on both volume and kernel
-    volume_fft = torch.fft.fftn(volume, dim=(0, 1, 2))
-    kernel_fft = torch.fft.fftn(kernel, dim=(0, 1, 2))
+    # Perform rFFT on both volume and kernel (optimized for real inputs)
+    volume_fft = torch.fft.rfftn(volume, dim=(0, 1, 2))
+    kernel_fft = torch.fft.rfftn(kernel, dim=(0, 1, 2))
 
     # Multiply in frequency domain (convolution theorem)
     result_fft = volume_fft * kernel_fft
 
-    # Inverse FFT to get result
-    result = torch.fft.ifftn(result_fft, dim=(0, 1, 2)).real
+    # Inverse rFFT to get result
+    result = torch.fft.irfftn(result_fft, volume.shape[0:-1], dim=(0, 1, 2))
 
-    return result#convert_volume_drjit(result)
+    return result
+
