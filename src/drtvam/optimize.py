@@ -1,6 +1,7 @@
 import drtvam
 import mitsuba as mi
 import drjit as dr
+import drjit
 import numpy as np
 import os
 import tqdm
@@ -16,6 +17,7 @@ from drtvam.utils import wasserstein_distance_volumes
 from drtvam.loss import losses
 from drtvam.lbfgs import LinearLBFGS
 from drtvam.diffusion import fft_convolve_3d, convert_volume
+
 
 def load_scene(config):
     for key in ['target', 'vial', 'projector', 'sensor']:
@@ -133,9 +135,13 @@ def optimize(config, patterns_fwd=None):
         diffusion_kernel = 0 * X
 
         delta_t = diffusion_time / diffusion_number_rotations
-        for n in range(diffusion_number_rotations):
-            r = torch.sqrt(X**2 + Y**2 + Z**2)
-            diffusion_kernel += torch.exp(-r**2 / (4 * diffusion_D * delta_t * (n+0.5))) / ((4 * np.pi * (n + 0.5) * diffusion_D * delta_t)**(3/2))
+
+
+        if config_initial["diffusion"]["type"] == "convolve_intensity":
+            for n in range(diffusion_number_rotations):
+                r = torch.sqrt(X**2 + Y**2 + Z**2)
+                diffusion_kernel += torch.exp(-r**2 / (4 * diffusion_D * delta_t * (n+0.5))) / ((4 * np.pi * (n + 0.5) * diffusion_D * delta_t)**(3/2))
+
 
         diffusion_kernel /= torch.sum(diffusion_kernel)
 
@@ -330,7 +336,8 @@ def optimize(config, patterns_fwd=None):
         return vol_final
     else:
         print("Optimizing patterns...")
-        for i in trange(n_steps):
+        pbar = trange(n_steps)
+        for i in pbar:
             if progressive and i == 5:
                 integrator.max_depth = max_depth
 
@@ -339,13 +346,16 @@ def optimize(config, patterns_fwd=None):
 
                 vol = mi.render(scene, params, integrator=integrator, sensor=sensor, spp=spp, spp_grad=spp_grad, seed=i)
 
-                if "diffusion" in config_initial:
+                if "diffusion" in config_initial and config_initial["diffusion"]["type"] == "convolve_intensity":
                     vol = fft_convolve_3d(vol, diffusion_kernel_drjit)
-                dr.schedule(vol)
 
-                mi.Log(mi.LogLevel.Debug, "[drtvam] Calling loss from optimize loop")
+                dr.schedule(vol)
                 loss = loss_fn(vol, target, params['projector.active_data'])
+
+
                 dr.eval(loss)
+                # Update progress bar with loss
+                pbar.set_postfix(loss=loss.numpy())
 
                 # numpy conversion is necessary to store the loss value
                 # apparently in just loss.numpy() is deprecated since (Deprecated NumPy 1.25.)
@@ -375,8 +385,9 @@ def optimize(config, patterns_fwd=None):
 
     print("Rendering final state...")
     vol_final = mi.render(scene, params, spp=spp_ref, integrator=integrator_final, sensor=final_sensor)
-    if "diffusion" in config_initial:
+    if "diffusion" in config_initial and config_initial["diffusion"]["type"] == "convolve_intensity":
         vol_final = fft_convolve_3d(vol_final, diffusion_kernel_drjit)
+
 
     np.save(os.path.join(output, "final.npy"), vol_final.numpy())
     save_vol(vol_final, os.path.join(output, "final.exr"))
