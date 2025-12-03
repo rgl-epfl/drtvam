@@ -86,13 +86,14 @@ class ThresholdedLoss(Loss):
     The loss is defined as:
     L(x, patterns) = weight_object * relu(tu - x)^K +
                      weight_void * relu(x - tl)^K +
-                     weight_limit * relu(x - 1)^K +
+                     weight_limit * relu(x - t_limit)^K +
                      patterns * weight_sparsity
 
     where:
     - x is the intensity distribution in the printing region
     - tu is the upper threshold, by default 0.95
     - tl is the lower threshold, by default 0.9
+    - t_limit is the limit for the overpolymerization term, by default 1.0
     - weight_object and weight_void are the weights for the object/void regions
     - weight_limit is the limit for the overpolymerization term
     - K is the exponent for the loss function, by default 2
@@ -105,6 +106,7 @@ class ThresholdedLoss(Loss):
         self.M = props.get('M', 4)
         self.tl = props.get('tl', 0.9)
         self.tu = props.get('tu', 0.95)
+        self.t_limit = props.get('t_limit', 1.0)
         # put a different weight for the object and void regions
         self.weight_object = props.get('weight_object', 1)
         self.weight_void = props.get('weight_void', 1)
@@ -118,7 +120,7 @@ class ThresholdedLoss(Loss):
 
     def eval_in(self, x):
         return self.weight_object * relu(self.tu - x)**self.K +\
-            self.weight_limit * relu(x - 1.)**self.K
+            self.weight_limit * relu(x - self.t_limit)**self.K
 
     def eval_out(self, x):
         return self.weight_void * relu(x - self.tl)**self.K
@@ -132,7 +134,8 @@ class ThresholdedLoss(Loss):
                 self.eval_sparsity(patterns)
 
 
+
 losses = {
     'l2': L2Loss,
-    'threshold': ThresholdedLoss,
+    'threshold': ThresholdedLoss
 }

@@ -76,7 +76,7 @@ With ``'sum'`` reduction, its full expression is:
 
 .. math::
 
-   L = w_{\text{object}} \cdot \sum_{i\in\text{Object}} \operatorname{ReLU}\left(t_u - v_i\right)^K + w_{\text{void}} \cdot \sum_{i\notin\text{Object}} \operatorname{ReLU}\left(v_i - t_l\right)^K\\ + w_{\text{limit}}\cdot \sum_{i\in\text{Object}} \operatorname{ReLU}\left(v_i - 1\right)^K + w_{\text{sparsity}} \cdot \sum_{p \in \text{patterns}} p^M
+   L = w_{\text{object}} \cdot \sum_{i\in\text{Object}} \operatorname{ReLU}\left(t_u - v_i\right)^K + w_{\text{void}} \cdot \sum_{i\notin\text{Object}} \operatorname{ReLU}\left(v_i - t_l\right)^K\\ + w_{\text{limit}}\cdot \sum_{i\in\text{Object}} \operatorname{ReLU}\left(v_i - t_\text{limit}\right)^K + w_{\text{sparsity}} \cdot \sum_{p \in \text{patterns}} p^M
    
 where $v_i$ is the intensity value at voxel $i$.
 This objective function was introduced by Wechsler et al. `[2024]
@@ -102,11 +102,15 @@ It requires the following additional parameters:
 
     * - ``tl``
       - ``float``
-      - The lower threshold, in ``[0, 1]``. Defaults to ``0.9``.
+      - The lower threshold. Defaults to ``0.9``.
 
     * - ``tu``
       - ``float``
-      - The upper threshold, in ``[0, 1]``. Defaults to ``0.95``.
+      - The upper threshold. Defaults to ``0.95``.
+
+    * - ``t_limit``
+      - ``float``
+      - The limit threshold. Defaults to ``1.0``.
 
     * - ``weight_object``
       - ``float``
