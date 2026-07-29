@@ -67,8 +67,7 @@ Rizzo, R., Sgarminato, V., Wechsler, F., & Moser, C. (2026). Tomographic Printin
 
 
 
-Rizzo, R., Wechsler, F., Zhang, Q., & Moser, C. (2026). Too Big, Too Small, Too $ O_2 $: The Pandoro Effect from Oxygen Gradients in Tomographic Volumetric Additive Manufacturing. arXiv preprint arXiv:2604.06313.
-`Preprint <https://arxiv.org/abs/2604.06313>`_
+Rizzo, R., Wechsler, F., Zhang, Q., & Moser, C. (2026). Too Big, Too Small, Too $ O_2 $: The Pandoro Effect from Oxygen Gradients in Tomographic Volumetric Additive Manufacturing. Biofabrication. 2026. `Link <https://doi.org/10.1088/1758-5090/ae8a84>`_
 
 
 .. raw:: html
@@ -78,15 +77,20 @@ Rizzo, R., Wechsler, F., Zhang, Q., & Moser, C. (2026). Too Big, Too Small, Too 
 
 .. code-block:: bash
 
-    @misc{rizzo2026bigsmallo2pandoro,
-          title={Too Big, Too Small, Too $O_2$: The Pandoro Effect from Oxygen Gradients in Tomographic Volumetric Additive Manufacturing}, 
-          author={Riccardo Rizzo and Felix Wechsler and Qianyi Zhang and Christophe Moser},
-          year={2026},
-          eprint={2604.06313},
-          archivePrefix={arXiv},
-          primaryClass={physics.optics},
-          url={https://arxiv.org/abs/2604.06313}, 
-    }
+    @article{pandoro_TVAM,
+      doi = {10.1088/1758-5090/ae8a84},
+      url = {https://doi.org/10.1088/1758-5090/ae8a84},
+      year = {2026},
+      month = {jul},
+      publisher = {IOP Publishing},
+      volume = {18},
+      number = {3},
+      pages = {035037},
+      author = {Rizzo, Riccardo and Wechsler, Felix and Zhang, Qianyi and Moser, Christophe},
+      title = {Too big, too small, too O_2: the Pandoro effect from oxygen gradients in tomographic volumetric additive manufacturing},
+      journal = {Biofabrication},
+      abstract = {Tomographic volumetric additive manufacturing (TVAM) enables rapid, layerless biofabrication; however, its application to thermoreversible hydrogels is often compromised by complex photochemical kinetics such as inhibitor effects including varying concentration and diffusion. In this study, we identify and characterize a recurrent printing artifact-termed the Pandoro effect-manifesting as a truncated-cone distortion caused by premature polymerization at the vial bottom and inhibition at the top. We demonstrate that this phenomenon originates from a vertical oxygen gradient driven by the thermal cycling of resin preparation: heating depletes dissolved oxygen, while subsequent cooling induces diffusion-limited re-oxygenation from the air–resin interface. To mitigate this, we present a multi-tiered strategy. First, we introduce a coupled ray-optical and photochemical optimization model that rigorously accounts for spatially heterogeneous inhibitor concentrations. Unlike conventional threshold-based approaches, this differentiable framework explicitly simulates the spatiotemporal reaction-diffusion dynamics of oxygen depletion, allowing the inverse solver to predictively compensate for local inhibition gradients. Complementing this algorithmic correction, we validate two process-based interventions: the elimination of the air–resin interface and the control of headspace atmosphere. We demonstrate that these strategies effectively suppress the Pandoro effect and are compatible with cell-laden resins. This work establishes guidelines for reproducible volumetric bioprinting and expands our open-source Dr.TVAM platform with inhibition-aware polymerization modeling capabilities.}
+      }
 
 .. raw:: html
 
