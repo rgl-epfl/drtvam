@@ -8,6 +8,34 @@ Dr.TVAM has been used and verified in a few different publications already.
 2026
 ----
 
+Thijssen, Q., Wechsler, F., Ortega, A.J. et al. Antagonistic Dual-Wavelength Tomographic Volumetric Additive Manufacturing. ChemRxiv (2026). https://doi.org/10.26434/chemrxiv.15006647/v1
+`Open Access link <https://chemrxiv.org/doi/abs/10.26434/chemrxiv.15006647/v1>`_ .
+
+.. raw:: html
+
+   <details>
+   <summary><a>Bibtex (click to expand)</a></summary>
+
+.. code-block:: bash
+
+   @article{antagonistic_TVAM,
+      author={Thijssen, Quinten and Wechsler, Felix and Ortega, Antonio J. and Carroll, Joshua A. and Moser, Christophe and Van Vlierberghe, Sandra and Barner-Kowollik, Christopher},
+      title={Antagonistic Dual-Wavelength Tomographic Volumetric Additive Manufacturing},
+      journal={ChemRxiv},
+      volume={2026},
+      number={0728},
+      pages={},
+      year={2026},
+      doi={10.26434/chemrxiv.15006647/v1},
+      url={https://chemrxiv.org/doi/abs/10.26434/chemrxiv.15006647/v1},
+      eprint={https://chemrxiv.org/doi/pdf/10.26434/chemrxiv.15006647/v1}
+   }
+
+.. raw:: html
+
+   </details>
+
+
 Wechsler, F., Sgarminato, V., Rizzo, R. et al. Overprinting with tomographic volumetric additive manufacturing. Nat Commun (2026). https://doi.org/10.1038/s41467-026-73477-3
 `Open Access link <https://www.nature.com/articles/s41467-026-73477-3>`_ .
 
