@@ -64,8 +64,8 @@ Wechsler, F., Sgarminato, V., Rizzo, R. et al. Overprinting with tomographic vol
    </details>
 
 
-Rizzo, R., Sgarminato, V., Wechsler, F., & Moser, C. (2026). Tomographic Printing in a Chip: A Versatile Platform for Biomimetic 3D Organ-on-Chip. bioRxiv, 2026-02.
-`Preprint <https://www.biorxiv.org/content/10.64898/2026.02.26.708161v2.abstract>`_
+R. Rizzo, V. Sgarminato, F. Wechsler, and C. Moser, “ Tomographic Printing in a Chip: A Versatile Platform for Biomimetic 3D Organ-on-Chip.” Advanced Healthcare Materials (2026): e71504. 
+`Manuscript <https://doi.org/10.1002/adhm.71504>`_
 
 
 .. raw:: html
@@ -75,18 +75,18 @@ Rizzo, R., Sgarminato, V., Wechsler, F., & Moser, C. (2026). Tomographic Printin
 
 .. code-block:: bash
 
-    @article {Rizzo2026.02.26.708161,
-    	author = {Rizzo, Riccardo and Sgarminato, Viola and Wechsler, Felix and Moser, Christophe},
-    	title = {Tomographic Printing in a Chip: A Versatile Platform for Biomimetic 3D Organ-on-Chip},
-    	elocation-id = {2026.02.26.708161},
-    	year = {2026},
-    	doi = {10.64898/2026.02.26.708161},
-    	publisher = {Cold Spring Harbor Laboratory},
-    	abstract = {Organ-on-chip (OoC) platforms are increasingly adopted for predictive in vitro testing. However, most remain limited by soft-lithography{\textendash}derived 2.5D microfluidic architectures and non-physiological rigid materials, or bioprinting approaches that require complex and failure-prone post-fabrication assembly. Here, we present a versatile approach that integrates tomographic volumetric additive manufacturing (TVAM) directly within preassembled microfluidic chips, enabling rapid, contactless fabrication of freeform 3D OoCs. Leveraging our open-source optical simulation framework, Dr.TVAM, we perform TVAM in custom-designed chips, eliminating post-printing manual assembly steps that commonly lead to leakage, contamination, and poor reproducibility. This strategy, termed TVAM-in-a-chip, supports the generation of diverse 3D channel architectures in multiple biocompatible photoresins spanning a wide range of chemistries and mechanical properties, including cell-laden formulations. We demonstrate multi-channel designs, compatibility with confocal imaging, and dynamic culture of epithelial and endothelial models. Overall, TVAM-in-a-chip overcomes key limitations of current OoC technologies and paves the way for a new generation of scalable, biomimetic 3D platforms for advanced in vitro modeling.Competing Interest StatementChristophe Moser is a shareholder of Readily3D SA. All other authors declare they have no competing interests.Swiss National Science Foundation, https://ror.org/00yjd3n13, P5R5-3_235066, 10007068},
-    	URL = {https://www.biorxiv.org/content/early/2026/03/02/2026.02.26.708161},
-    	eprint = {https://www.biorxiv.org/content/early/2026/03/02/2026.02.26.708161.full.pdf},
-    	journal = {bioRxiv}
-    }
+    @article{TVAM_in_a_chip,
+    author = {Rizzo, Riccardo and Sgarminato, Viola and Wechsler, Felix and Moser, Christophe},
+    title = {Tomographic Printing in a Chip: A Versatile Platform for Biomimetic 3D Organ-on-Chip},
+    journal = {Advanced Healthcare Materials},
+    volume = {n/a},
+    number = {n/a},
+    pages = {e71504},
+    keywords = {bioprinting, microfluidics, organ-on-chip, photochemistry, tomographic, TVAM, volumetric printing},
+    doi = {https://doi.org/10.1002/adhm.71504},
+    url = {https://advanced.onlinelibrary.wiley.com/doi/abs/10.1002/adhm.71504},
+    eprint = {https://advanced.onlinelibrary.wiley.com/doi/pdf/10.1002/adhm.71504},
+}
 
 .. raw:: html
 
