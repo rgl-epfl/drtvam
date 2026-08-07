@@ -1,11 +1,11 @@
 import mitsuba as mi
-if ('llvm_ad_mono' not in mi.variants()) and ('cuda_ad_mono' not in mi.variants()):
-    raise ImportError("This package requires Mitsuba's'llvm_ad_mono' or 'cuda_ad_mono' variants to be available.")
+if ('llvm_ad_mono' not in mi.variants()) and ('cuda_ad_mono' not in mi.variants()) and ('metal_ad_mono' not in mi.variants()):
+    raise ImportError("This package requires Mitsuba's 'llvm_ad_mono', 'cuda_ad_mono' or 'metal_ad_mono' variants to be available.")
 import drjit as dr
 
 def plugin_variant_callback(old, new):
-    if new not in ['cuda_ad_mono', 'llvm_ad_mono']:
-        raise ValueError(f"Unsupported variant '{new}', it must be either 'cuda_ad_mono' or 'llvm_ad_mono'.")
+    if new not in ['cuda_ad_mono', 'llvm_ad_mono', 'metal_ad_mono']:
+        raise ValueError(f"Unsupported variant '{new}', it must be either 'cuda_ad_mono', 'llvm_ad_mono' or 'metal_ad_mono'.")
 
     import importlib
 
@@ -24,11 +24,7 @@ def plugin_variant_callback(old, new):
 mi.detail.add_variant_callback(plugin_variant_callback)
 from . import integrators
 
-# see https://github.com/mitsuba-renderer/mitsuba3/pull/1522
-try:
-    mi.set_variant('cuda_ad_mono', 'llvm_ad_mono')
-except:
-    mi.set_variant('llvm_ad_mono')
+mi.set_variant('cuda_ad_mono', 'metal_ad_mono', 'llvm_ad_mono')
 
 from . import geometry, motion, loss, convolution
 
