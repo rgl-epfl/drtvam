@@ -7,7 +7,7 @@ from drtvam.convolution import make_drjit_conv
 import numpy as np
 import matplotlib.pyplot as plt
 
-@pytest.mark.parametrize("variant", ["cuda_ad_mono"])
+@pytest.mark.parametrize("variant", ["cuda_ad_mono", "llvm_ad_mono"])
 def test_mitsuba_convolution(variant):
     mi.set_variant(variant)
     # Parameters
@@ -59,3 +59,46 @@ def test_mitsuba_convolution(variant):
     assert dr.abs(dr.sum(kernel_3d) - 1.0) < 1e-6, "Expected kernel is not normalized!"
     assert max_err < 1e-6, "Convolution result does not match expected kernel!"
     assert dr.allclose(result_np, kernel_3d, atol=1e-6), "Convolution result does not match expected kernel!"
+
+
+@pytest.mark.parametrize("variant", ["cuda_ad_mono", "llvm_ad_mono"])
+def test_convolution_against_scipy_fft(variant):
+    mi.set_variant(variant)
+    sfft = pytest.importorskip("scipy.fft")
+
+    scalex, scaley, scalez = 1e-3, 1e-3, 1e-3
+    resx, resy, resz = 90, 90, 90
+
+    dx, dy, dz = scalex / resx, scaley / resy, scalez / resz
+    delta_t = 1
+    D = 1e-3
+    filter_radius = 45
+
+    z_ax = np.arange(resz, dtype=np.float32) * dz - scalez / 2
+    x_ax = np.arange(resx, dtype=np.float32) * dx - scalex / 2
+    y_ax = np.arange(resy, dtype=np.float32) * dy - scaley / 2
+    Z, X, Y = np.meshgrid(z_ax, x_ax, y_ax, indexing='ij')
+
+    limit  = 0.01e-3
+    vol_np = ((np.abs(Z) <= limit) & (np.abs(Y) <= limit) & (np.abs(X) <= limit)).astype(np.float32)
+
+    sigma = np.sqrt(2 * delta_t * D)
+    kernel_3d  = np.exp(-(Z**2 + X**2 + Y**2) / (2 * sigma**2)).astype(np.float32)
+    kernel_3d /= kernel_3d.sum()
+    kernel_3d  = sfft.ifftshift(kernel_3d)
+
+    def fft_convolve_3d(volume: np.ndarray, kernel: np.ndarray) -> np.ndarray:
+        vol_f = sfft.rfftn(volume, axes=(0, 1, 2))
+        ker_f = sfft.rfftn(kernel, s=volume.shape, axes=(0, 1, 2))
+        return sfft.irfftn(vol_f * ker_f, s=volume.shape, axes=(0, 1, 2))
+
+    result_fft_np = fft_convolve_3d(vol_np, kernel_3d)
+
+    vol_drjit = mi.TensorXf(vol_np)
+    drjit_conv = make_drjit_conv(dx, dy, dz, D, delta_t, filter_radius, filter_radius, filter_radius)
+    result_drjit = drjit_conv(vol_drjit)
+    result_drjit_np = result_drjit.numpy().reshape(resz, resx, resy)
+
+    assert np.allclose(result_drjit_np, result_fft_np, atol=1e-6), "Convolution result does not match expected result from scipy fft!"
+
+
