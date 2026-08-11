@@ -5,6 +5,13 @@ Being an experimental research framework, Dr.TVAM does not strictly follow the
 `Semantic Versioning <https://semver.org/>`_ convention. That said, we will
 strive to document breaking API changes in the release notes below.
 
+Dr. TVAM 0.9.0
+--------------
+*August 11, 2026*
+
+- Upgrade to Mitsuba 3.9.1 and Dr.Jit 1.5.0 which led to 21% performance gains in optimization.
+- Introduction of Metal backend following Mitsuba. Now it's possible to run optimization on Apple Silicon GPUs.
+
 Dr. TVAM 0.8.1
 --------------
 *May 06, 2026*
