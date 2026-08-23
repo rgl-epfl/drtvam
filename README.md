@@ -164,7 +164,7 @@ This project is provided under a non-commercial license. Please refer to the LIC
 
 ## Citation
 
-When using this project in academic works, please cite the following paper:
+When using this project in academic works, please cite the following paper. See also this [link](https://drtvam.readthedocs.io/en/latest/references.html) for an overview of published research with Dr.TVAM:
 
 ```
 @article{nicolet2024inverse,
