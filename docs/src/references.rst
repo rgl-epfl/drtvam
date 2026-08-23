@@ -7,6 +7,31 @@ Dr.TVAM has been used and verified in a few different publications already.
 
 2026
 ----
+Qianyi Zhang, Felix Wechsler, Viola Sgarminato, Christophe Moser, Riccardo Rizzo. Overcoming Scattering in High-Cell-Density Tomographic Volumetric Bioprinting Using Computational Light Optimization. arXiv (2026).  	arXiv:2608.05347
+`Open Access link <https://arxiv.org/abs/2608.05347>`_ .
+
+.. raw:: html
+
+   <details>
+   <summary><a>Bibtex (click to expand)</a></summary>
+
+.. code-block:: bash
+
+   @misc{zhang2026overcomingscatteringhighcelldensitytomographic,
+         title={Overcoming Scattering in High-Cell-Density Tomographic Volumetric Bioprinting Using Computational Light Optimization}, 
+         author={Qianyi Zhang and Felix Wechsler and Viola Sgarminato and Christophe Moser and Riccardo Rizzo},
+         year={2026},
+         eprint={2608.05347},
+         archivePrefix={arXiv},
+         primaryClass={physics.optics},
+         url={https://arxiv.org/abs/2608.05347}, 
+   }
+
+.. raw:: html
+
+   </details>
+
+
 
 Thijssen, Q., Wechsler, F., Ortega, A.J. et al. Antagonistic Dual-Wavelength Tomographic Volumetric Additive Manufacturing. ChemRxiv (2026). https://doi.org/10.26434/chemrxiv.15006647/v1
 `Open Access link <https://chemrxiv.org/doi/abs/10.26434/chemrxiv.15006647/v1>`_ .
