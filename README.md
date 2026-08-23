@@ -98,8 +98,14 @@ Dr.TVAM will run multi-threaded on your machine but will also use your CUDA GPU 
 
 You can also choose to run optimization on Apple Silicon GPU by specifying the `metal` backend
 ```bash=
-drtvam --backend metal path/to/config.json
+drtvam --backend=metal path/to/config.json
 ```
+
+If you want to use your CPU, use:
+```bash=
+drtvam --backend=llvm path/to/config.json
+```
+
 
 ## Advanced Usage
 
