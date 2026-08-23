@@ -96,6 +96,17 @@ drtvam path/to/config.json
 Please refer to the documentation for details on the configuration file format. 
 Dr.TVAM will run multi-threaded on your machine but will also use your CUDA GPU and your [RT cores](https://developer.nvidia.com/rtx/ray-tracing) if supported by your hardware. 
 
+You can also choose to run optimization on Apple Silicon GPU by specifying the `metal` backend
+```bash=
+drtvam --backend=metal path/to/config.json
+```
+
+If you want to use your CPU, use:
+```bash=
+drtvam --backend=llvm path/to/config.json
+```
+
+
 ## Advanced Usage
 
 Dr.TVAM provides a set of useful abstractions to implement a wide variety of

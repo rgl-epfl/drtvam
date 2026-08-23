@@ -501,7 +501,7 @@ def main():
     parser = argparse.ArgumentParser("Optimize patterns for TVAM.")
     parser.add_argument("config", type=str, help="Path to the configuration file")
     parser.add_argument("-D", dest="overrides", metavar="key=value", action=OverrideAction, help="Override/Add a parameter in the configuration dictionary. Nested keys are separated by dots.")
-    parser.add_argument("--backend", type=str, default="cuda", choices=["cuda", "llvm"], help="Select the backend for the optimization.")
+    parser.add_argument("--backend", type=str, default="cuda", choices=["cuda", "llvm", "metal"], help="Select the backend for the optimization.")
     parser.add_argument("--forward_mode", action="store_true", help="Just project the patterns without optimization.\
                         Patterns need to be specified by --patterns (a .npz file).")
     parser.add_argument("--patterns", type=str, help="Path to the patterns file (a .npz file). This is only used in forward mode.")
