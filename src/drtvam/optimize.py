@@ -266,6 +266,7 @@ def optimize(config, patterns_fwd=None):
 
     if patterns_fwd is not None:
         print("Using provided patterns for forward mode.")
+        active_pixels = params['projector.active_pixels']
         params['projector.active_data'] = patterns_fwd.flatten()[active_pixels]
         params.update()
 
