@@ -1,9 +1,19 @@
 import drjit as dr
 import mitsuba as mi
+import warnings
 
 
 def relu(x):
     return dr.select(x > 0, x, 0)
+
+
+def get_weight_sparsity(props):
+    """Read the discontinued 'weight_sparsity' option, warning if it is set."""
+    if 'weight_sparsity' in props:
+        warnings.warn("[Loss] 'weight_sparsity' is discontinued and will be removed "
+                      "in a future version. Please use 'projector.max_pattern_value' "
+                      "instead to increase energy efficiency.", stacklevel=3)
+    return props.get('weight_sparsity', 0)
 
 
 class Loss:
@@ -65,7 +75,7 @@ class L2Loss(Loss):
         super().__init__(props)
         self.M = props.get('M', 4)
         # by default no sparsity
-        self.weight_sparsity = props.get('weight_sparsity', 0)
+        self.weight_sparsity = get_weight_sparsity(props)
 
     def eval_in(self, x):
         return dr.square(x - 1.)
@@ -110,7 +120,7 @@ class ThresholdedLoss(Loss):
         self.weight_void = props.get('weight_void', 1)
         self.weight_limit = props.get('weight_limit', 1)
         # by default no sparsity
-        self.weight_sparsity = props.get('weight_sparsity', 0)
+        self.weight_sparsity = get_weight_sparsity(props)
 
         if self.tl >= self.tu:
             raise ValueError(f"[ThresholdedLoss] Lower threshold ({self.tl})\
@@ -221,7 +231,7 @@ class ThresholdedInhibitorLoss(LossInhibitor):
         self.weight_void = props.get('weight_void', 1)
         self.weight_limit = props.get('weight_limit', 1)
         # by default no sparsity
-        self.weight_sparsity = props.get('weight_sparsity', 0)
+        self.weight_sparsity = get_weight_sparsity(props)
 
 
     def eval_in(self, x_polymerization, x_inhibitor):
