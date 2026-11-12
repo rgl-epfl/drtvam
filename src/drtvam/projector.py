@@ -44,6 +44,8 @@ class TVAMProjector(mi.Emitter):
 
         self.m_sampler = props.get('sampler', mi.load_dict({'type': 'independent'}))
 
+        self.max_pattern_value = props.get('max_pattern_value', dr.inf)
+
         if 'patterns' in props:
             if isinstance(props['patterns'], str):
                 patterns = load_patterns(props['patterns'])
