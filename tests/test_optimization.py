@@ -12,12 +12,18 @@ from drtvam.optimize import *
 from drtvam.utils import discretize
 import matplotlib.pyplot as plt
 
+# None = default optimizer (LinearLBFGS)
+OPTIMIZERS = [None,
+              {'type': 'lbfgs', 'wolfe': False},
+              {'type': 'lbfgs', 'wolfe': True}]
+
 
 
 
 @pytest.mark.parametrize("fname", ['tests/files/double_cylindrical.json'])
 @pytest.mark.parametrize("variant", ["cuda_ad_mono"])
-def test_double_cylindrical(fname, variant):
+@pytest.mark.parametrize("optimizer", OPTIMIZERS)
+def test_double_cylindrical(fname, variant, optimizer):
     mi.set_variant(variant)
 
     # Load the configuration file
@@ -25,6 +31,8 @@ def test_double_cylindrical(fname, variant):
         config = json.load(f)
 
     config['output'] = os.path.dirname(os.path.abspath(fname))
+    if optimizer is not None:
+        config['optimizer'] = dict(optimizer)
 
     # Save the configuration file in the output directory
     os.makedirs(os.path.join(config['output'], "patterns"), exist_ok=True)
@@ -43,7 +51,8 @@ def test_double_cylindrical(fname, variant):
 @pytest.mark.parametrize("fname", ['tests/files/box_hole_occlusion.json',\
                                    "tests/files/box_hole_occlusion_filter_radon.json"])
 @pytest.mark.parametrize("variant", ["cuda_ad_mono"])
-def test_square_hole_occlusion_optimization(fname, variant):
+@pytest.mark.parametrize("optimizer", OPTIMIZERS)
+def test_square_hole_occlusion_optimization(fname, variant, optimizer):
     mi.set_variant(variant)
 
     # Load the configuration file
@@ -51,6 +60,8 @@ def test_square_hole_occlusion_optimization(fname, variant):
         config = json.load(f)
 
     config['output'] = os.path.dirname(os.path.abspath(fname))
+    if optimizer is not None:
+        config['optimizer'] = dict(optimizer)
 
     # Save the configuration file in the output directory
     os.makedirs(os.path.join(config['output'], "patterns"), exist_ok=True)
@@ -110,7 +121,8 @@ def test_square_hole_occlusion_optimization(fname, variant):
                                    'tests/files/box_hole_custom_cuvette.json'\
                                    ])
 @pytest.mark.parametrize("variant", ["cuda_ad_mono", "llvm_ad_mono"])
-def test_square_hole_optimization(fname, variant):
+@pytest.mark.parametrize("optimizer", OPTIMIZERS)
+def test_square_hole_optimization(fname, variant, optimizer):
     mi.set_variant(variant)
 
     # Load the configuration file
@@ -118,6 +130,8 @@ def test_square_hole_optimization(fname, variant):
         config = json.load(f)
 
     config['output'] = os.path.dirname(os.path.abspath(fname))
+    if optimizer is not None:
+        config['optimizer'] = dict(optimizer)
 
     # Save the configuration file in the output directory
     os.makedirs(os.path.join(config['output'], "patterns"), exist_ok=True)
@@ -164,3 +178,50 @@ def test_square_hole_optimization(fname, variant):
     # plt.imshow(vol_final.numpy()[:, 50, :, 0])
     # plt.show()
 
+@pytest.mark.parametrize("max_pattern_value", [0.25, 0.5, 1.0])
+@pytest.mark.parametrize("variant", ["cuda_ad_mono"])
+@pytest.mark.parametrize("optimizer", OPTIMIZERS)
+def test_max_pattern_value(max_pattern_value, variant, optimizer, tmp_path):
+    mi.set_variant(variant)
+
+    with open('tests/files/box_hole_square.json', 'r') as f:
+        config = json.load(f)
+
+    config['output'] = str(tmp_path)
+    if optimizer is not None:
+        config['optimizer'] = dict(optimizer)
+    config['projector']['max_pattern_value'] = max_pattern_value
+    os.makedirs(os.path.join(config['output'], "patterns"), exist_ok=True)
+
+    optimize(config)
+
+    patterns = np.load(os.path.join(config['output'], "patterns.npz"))['patterns']
+
+    assert np.min(patterns) >= 0.0
+    assert np.max(patterns) <= max_pattern_value
+
+
+# Both setups reach dot(y, s) = 0 in LinearLBFGS or LBFGS. Without early stopping the patterns turn NaN.
+@pytest.mark.parametrize("fname, overrides", [
+    ('tests/files/early_stopping.json', {}),
+    ('tests/files/box_hole_square.json',
+     {'optimizer': {'type': 'lbfgs', 'wolfe': True, 'init_alpha': 1.0}, 'n_steps': 300}),
+])
+@pytest.mark.parametrize("variant", ["cuda_ad_mono"])
+def test_early_stopping(fname, overrides, variant, tmp_path):
+    mi.set_variant(variant)
+
+    with open(fname, 'r') as f:
+        config = json.load(f)
+    config.update(overrides)
+    config['output'] = str(tmp_path)
+    os.makedirs(os.path.join(config['output'], "patterns"), exist_ok=True)
+
+    vol_final = optimize(config)
+
+    patterns = np.load(os.path.join(config['output'], "patterns.npz"))['patterns']
+    assert not np.isnan(patterns).any()
+
+    target = np.load(os.path.join(config['output'], "target.npy"))
+    threshold = (config['loss']['tl'] + config['loss']['tu']) / 2
+    assert np.mean((target > 0.5) == (vol_final.numpy() > threshold)) * 100 > 99.4
