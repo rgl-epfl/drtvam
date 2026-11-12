@@ -54,7 +54,7 @@ The common parameters for all projectors are:
       - ``str``, ``np.ndarray`` or ``mi.TensorXf``
       - Tensor containing the patterns, or path to a file or directory
         containing the patterns. Loading patterns from an ``.npy`` file and from
-        individual ``.exr`` files is supported. 
+        individual ``.exr`` files is supported.
 
 If there are no specific patterns to be loaded, the projector parameters can be
 specified manually, and all pixels will be initialized to zero. Those parameters
@@ -103,6 +103,15 @@ are:
     * - ``crop_offset_y``
       - ``int``
       - The offset of the crop region along the vertical axis.
+
+    * - ``max_pattern_value``
+      - ``float``
+      - Optional upper bound on the pattern values during optimization. After
+        every optimization step, the pattern values are clipped to
+        ``[0, max_pattern_value]``. Lowering it limits the peak intensity of the
+        patterns, which reduces their sparsity, increases their energy
+        efficiency and hence can help reduce the printing time.
+        Defaults to infinity, i.e. only negative values are clipped.
 
 .. warning::
 
