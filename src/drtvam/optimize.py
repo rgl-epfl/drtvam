@@ -535,7 +535,7 @@ def main():
             key = key.split('.')
             tmp = config
             for k in key[:-1]:
-                tmp = tmp.setdefault(k, {})
+                tmp = tmp[k]
             tmp[key[-1]] = value
 
     # Add the directory of the configuration file to the file resolver for relative paths
