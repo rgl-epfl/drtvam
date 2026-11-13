@@ -14,7 +14,6 @@ Dr. TVAM 0.10.0
 - Standard LBFGS optimizer is now available and a few related bugs are fixed.
 - **Breaking change**: ``"optimizer": {"type": "lbfgs"}`` now selects the standard L-BFGS optimizer, which can be slower. Previously it selected linear L-BFGS. Use ``"type": "linear_lbfgs"`` (or omit the optimizer, as it is the default) to keep the old behavior. Optimizer parameters from the config are now passed to the optimizer, and unknown optimizer types raise an error.
 
-
 Dr. TVAM 0.9.0
 --------------
 *August 11, 2026*
