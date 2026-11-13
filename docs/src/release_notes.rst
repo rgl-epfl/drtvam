@@ -13,6 +13,7 @@ Dr. TVAM 0.10.0
 - The loss option ``weight_sparsity`` is deprecated and now raises a warning. Use ``projector.max_pattern_value`` instead.
 - Standard LBFGS optimizer is now available and a few related bugs are fixed.
 
+
 Dr. TVAM 0.9.0
 --------------
 *August 11, 2026*
