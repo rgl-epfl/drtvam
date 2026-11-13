@@ -5,6 +5,14 @@ Being an experimental research framework, Dr.TVAM does not strictly follow the
 `Semantic Versioning <https://semver.org/>`_ convention. That said, we will
 strive to document breaking API changes in the release notes below.
 
+Dr. TVAM 0.10.0
+---------------
+*November 13, 2026*
+
+- Add a new optional parameter ``projector.max_pattern_value`` to set an upper bound on the pattern intensity. It can help reduce sparsity and increase energy efficiency of the patterns.
+- The loss option ``weight_sparsity`` is deprecated and now raises a warning. Use ``projector.max_pattern_value`` instead.
+- Standard LBFGS optimizer is now available and a few related bugs are fixed.
+
 Dr. TVAM 0.9.0
 --------------
 *August 11, 2026*
