@@ -326,6 +326,10 @@ def optimize(config, patterns_fwd=None):
         for i in pbar:
             if progressive and i == 5:
                 integrator.max_depth = max_depth
+                # Since max depth changes, it means that the forward model changes as well,
+                # which invalidates the gradient and parameter history for LBFGS optimizer, so we reset it.
+                if optim_type == 'lbfgs' or optim_type == 'linear_lbfgs':
+                    opt.reset()
 
             with dr.scoped_set_flag(dr.JitFlag.KernelHistory, True):
                 params.update(opt)

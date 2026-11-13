@@ -201,7 +201,8 @@ def test_max_pattern_value(max_pattern_value, variant, optimizer, tmp_path):
     assert np.max(patterns) <= max_pattern_value
 
 
-# Both setups reach dot(y, s) = 0 in LinearLBFGS or LBFGS. Without early stopping the patterns turn NaN.
+# These setups can reach negative or zero curvature, but LBFGS optimizers expect it to be positive to progress.
+# Hence, in this case we stop the optimization early to prevent patterns becoming NaN.
 @pytest.mark.parametrize("fname, overrides", [
     ('tests/files/early_stopping.json', {}),
     ('tests/files/box_hole_square.json',

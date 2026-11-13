@@ -54,8 +54,8 @@ class LBFGS(mi.ad.Optimizer):
             self.update_history(k)
             p, promoted, lr, (s, y, ys, t, p_old, g_old) = self.state[k]
 
-            # Stopping optimization early because parameter or gradient change is too small
-            if t > 1 and dr.all(ys[-1] == 0):
+            # Stop if the curvature condition fails: dot(s, y) > 0
+            if t > 1 and dr.all(ys[-1] <= 0):
                return False
 
             # Find search direction
@@ -181,8 +181,8 @@ class LinearLBFGS(mi.ad.Optimizer):
 
             p, promoted, lr, (s, y, ys, t, p_old, g_old) = self.state[k]
 
-            # Stopping optimization early because parameter or gradient change is too small
-            if t > 1 and dr.all(ys[-1] == 0):
+            # Stop if the curvature condition fails: dot(s, y) > 0
+            if t > 1 and dr.all(ys[-1] <= 0):
                 return False
 
             # Find search direction
