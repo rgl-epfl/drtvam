@@ -12,6 +12,7 @@ Dr. TVAM 0.10.0
 - Add a new optional parameter ``projector.max_pattern_value`` to set an upper bound on the pattern intensity. It can help reduce sparsity and increase energy efficiency of the patterns.
 - The loss option ``weight_sparsity`` is deprecated and now raises a warning. Use ``projector.max_pattern_value`` instead.
 - Standard LBFGS optimizer is now available and a few related bugs are fixed.
+- **Breaking change**: ``"optimizer": {"type": "lbfgs"}`` now selects the standard L-BFGS optimizer, which can be slower. Previously it selected linear L-BFGS. Use ``"type": "linear_lbfgs"`` (or omit the optimizer, as it is the default) to keep the old behavior. Optimizer parameters from the config are now passed to the optimizer, and unknown optimizer types raise an error.
 
 Dr. TVAM 0.9.0
 --------------
