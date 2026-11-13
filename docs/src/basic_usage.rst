@@ -104,7 +104,7 @@ Other entries are optional:
 
     *  - ``optimizer``
        - Dictionary
-       - Contains the choice of optimizer. Defaults to L-BFGS.
+       - Contains the choice of optimizer. Defaults to linear L-BFGS.
 
     *  - ``n_steps``
        - ``int``
