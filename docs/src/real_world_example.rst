@@ -124,7 +124,7 @@ We quickly explain the most important parameters:
 - **sensor**: The sensor records the volumetric absorption of resin within the volume. We use a cube of size 5mmx5mmx5mm with a resolution of 256x256x256 pixels.
 - **target**: The target is a 3D Benchy which is centered and scaled to 5mm.
 - **loss**: The loss function is a threshold loss with a lower threshold of 0.88 and an upper threshold of 0.95. The weight sparsity is set to 0.0, meaning we do not penalize sparsity in the patterns.
-- **n_steps**: The optimization runs for 30 steps with an L-BFGS optimizer.
+- **n_steps**: The optimization runs for 30 steps with the default linear L-BFGS optimizer.
 - **spp**: The number of rays per pixel.
 - **spp_ref**: The number of rays per pixel for the final rendering (``final.exr`` and ``final.npy``)
 - **spp_grad**: The number of rays per pixel for the gradient computation.
@@ -137,7 +137,7 @@ Open your terminal and launch the optimization with the following command. Of co
 .. code-block:: bash
 
     $ drtvam lol/lel/foo/config.json
-        No optimizer specified. Using L-BFGS.
+        No optimizer specified. Using linear L-BFGS.
         Optimizing patterns...
         100%|█████████████████████████████████| 30/30 [04:22<00:00,  8.75s/it]
         Rendering final state...

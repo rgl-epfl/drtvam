@@ -3,7 +3,7 @@ import drjit as dr
 from collections import defaultdict
 
 class LBFGS(mi.ad.Optimizer):
-    def __init__(self, lr=1.0, m=5, params=None, line_search_fn=None, wolfe=False, search_it=20):
+    def __init__(self, lr=1.0, m=5, params=None, line_search_fn=None, wolfe=False, search_it=20, init_alpha=None):
         super().__init__(lr, params)
         # Use Wolfe conditions, otherwise only use Armijo condition
         self.wolfe = wolfe
@@ -14,6 +14,10 @@ class LBFGS(mi.ad.Optimizer):
         self.line_search_fn = line_search_fn
         # How many iterations of backtracking line search to run
         self.search_it = search_it
+        # Initial step size of the line search.
+        if init_alpha is None:
+            init_alpha = 10. if wolfe else 1.
+        self.init_alpha = init_alpha
 
     def _reset(self, key, value, promoted):
         self.state[key] = value, promoted, None, ([], [], [], 0, None, None)
@@ -46,11 +50,13 @@ class LBFGS(mi.ad.Optimizer):
 
         # Compute search directions
         for k in self.state.keys():
-            #TODO: Stopping criterion ?
-
             # Update history
             self.update_history(k)
             p, promoted, lr, (s, y, ys, t, p_old, g_old) = self.state[k]
+
+            # Stop if the curvature condition fails: dot(s, y) > 0
+            if t > 1 and dr.all(ys[-1] <= 0):
+               return False
 
             # Find search direction
             q = dr.ravel(p.grad)
@@ -71,21 +77,21 @@ class LBFGS(mi.ad.Optimizer):
                 b = rho * dr.dot(y[i], z)
                 z = z + (alphas[i] - b) * s[i]
 
-            search_dirs[k] = -z
+            if type(p) == mi.TensorXf:
+                search_dirs[k] = dr.detach(type(p)(-z, shape=p.shape))
+            else:
+                search_dirs[k] = dr.detach(dr.unravel(type(p), -z))
 
         # Backtracking line search until Wolfe conditions are satisfied /!\ The
         # final step size is the same for all variables, not sure if this is the
         # proper way to do it
-        alpha = dr.opaque(mi.Float, 1.) # TODO: expose initial step size as param
+        alpha = dr.opaque(mi.Float, self.init_alpha)
         c1 = 1e-4
         c2 = 0.9
         for it in range(self.search_it):
             params = {}
             for k, (p, _, _, _) in self.state.items():
-                if type(p) == mi.TensorXf:
-                    params[k] = dr.detach(p + alpha * type(p)(search_dirs[k], shape=p.shape))
-                else:
-                    params[k] = dr.detach(p + alpha * dr.unravel(type(p), search_dirs[k]))
+                params[k] = dr.detach(p + alpha * search_dirs[k])
 
                 if self.wolfe:
                     dr.enable_grad(params[k])
@@ -99,11 +105,10 @@ class LBFGS(mi.ad.Optimizer):
             g_dot_z = mi.Float(0.)
             g_new_dot_z = mi.Float(0.)
             for k in self.state.keys():
-                p = self.state[k][0]
                 g_old = self.state[k][3][5]
-                g_dot_z += dr.dot(g_old, search_dirs[k])
+                g_dot_z += dr.dot(g_old, dr.ravel(search_dirs[k]))
                 if self.wolfe:
-                    g_new_dot_z += dr.dot(dr.ravel(p.grad), search_dirs[k])
+                    g_new_dot_z += dr.dot(dr.ravel(params[k].grad), dr.ravel(search_dirs[k]))
 
             wolfe1 = (f_new <= f + c1 * alpha * g_dot_z)
             if not self.wolfe:
@@ -117,18 +122,17 @@ class LBFGS(mi.ad.Optimizer):
             alpha *= 0.5
 
         for k, (p, promoted, lr, extra) in self.state.items():
-            if type(p) == mi.TensorXf:
-                new_val = dr.detach(p + alpha * type(p)(search_dirs[k], shape=p.shape))
-            else:
-                new_val = dr.detach(p + alpha * dr.unravel(type(p), search_dirs[k]))
+            new_val = dr.detach(p + alpha * search_dirs[k])
 
             dr.enable_grad(new_val)
             new_state = new_val, promoted, lr, extra
             dr.schedule(new_state)
             self.state[k] = new_state
 
+        return True
+
 class LinearLBFGS(mi.ad.Optimizer):
-    def __init__(self, lr=1.0, m=5, params=None, render_fn=None, loss_fn=None, search_it=20):
+    def __init__(self, lr=1.0, m=5, params=None, render_fn=None, loss_fn=None, search_it=20, init_alpha=1.):
         super().__init__(lr, params)
         # History size
         self.m = m
@@ -138,6 +142,8 @@ class LinearLBFGS(mi.ad.Optimizer):
         self.loss_fn = loss_fn
         # How many iterations of backtracking line search to run
         self.search_it = search_it
+        # Initial step size of the line search.
+        self.init_alpha = init_alpha
 
     def _reset(self, key, value, promoted):
         self.state[key] = value, promoted, None, ([], [], [], 0, None, None)
@@ -170,12 +176,14 @@ class LinearLBFGS(mi.ad.Optimizer):
 
         # Compute search directions
         for k in self.state.keys():
-            #TODO: Stopping criterion ?
-
             # Update history
             self.update_history(k)
 
             p, promoted, lr, (s, y, ys, t, p_old, g_old) = self.state[k]
+
+            # Stop if the curvature condition fails: dot(s, y) > 0
+            if t > 1 and dr.all(ys[-1] <= 0):
+                return False
 
             # Find search direction
             q = dr.ravel(p.grad)
@@ -196,35 +204,35 @@ class LinearLBFGS(mi.ad.Optimizer):
                 b = rho * dr.dot(y[i], z)
                 z = z + (alphas[i] - b) * s[i]
 
-            search_dirs[k] = -z
+            if type(p) == mi.TensorXf:
+                search_dirs[k] = dr.detach(type(p)(-z, shape=p.shape))
+            else:
+                search_dirs[k] = dr.detach(dr.unravel(type(p), -z))
+            #TODO: clamping ?
+            dr.schedule(search_dirs[k])
 
         # Backtracking line search until Armijo conditions are satisfied
-        alpha = dr.opaque(mi.Float, 1.) # TODO: expose initial step size as param
+        alpha = dr.opaque(mi.Float, self.init_alpha)
         c1 = 1e-4
-        params = {}
-        for k in self.state.keys():
-            tp = type(self.state[k][0])
-            if tp == mi.TensorXf:
-                params[k] = dr.detach(tp(search_dirs[k], shape=p.shape))
-            else:
-                params[k] = dr.detach(dr.unravel(tp, search_dirs[k]))
-            #TODO: clamping ?
-            dr.schedule(params[k])
 
-        dvol = self.render_fn(params)
+        dvol = self.render_fn(search_dirs)
         dr.eval(dvol)
 
         # Compute dot product of gradient and search direction for Armijo condition
         g_dot_z = mi.Float(0.)
         for k in self.state.keys():
             g_old = self.state[k][3][5]
-            g_dot_z += dr.dot(g_old, search_dirs[k])
+            g_dot_z += dr.dot(g_old, dr.ravel(search_dirs[k]))
 
         for _ in range(self.search_it):
 
             out = fwd(vol + alpha * dvol)
+            new_patterns = (
+                dr.detach(self.state['projector.active_data'][0]) +
+                alpha * search_dirs['projector.active_data']
+            )
             mi.Log(mi.LogLevel.Debug, "[drtvam] Calling loss from LBFGS")
-            f_new = self.loss_fn(out[0], params['projector.active_data'], *out[1:])
+            f_new = self.loss_fn(out[0], new_patterns, *out[1:])
 
             armijo = (f_new <= loss + c1 * alpha * g_dot_z)
             if dr.all(armijo):
@@ -233,13 +241,11 @@ class LinearLBFGS(mi.ad.Optimizer):
             alpha *= 0.5
 
         for k, (p, promoted, lr, extra) in self.state.items():
-            if type(p) == mi.TensorXf:
-                new_val = dr.detach(p + alpha * type(p)(search_dirs[k], shape=p.shape))
-            else:
-                new_val = dr.detach(p + alpha * dr.unravel(type(p), search_dirs[k]))
+            new_val = dr.detach(p + alpha * search_dirs[k])
 
             dr.enable_grad(new_val)
             new_state = new_val, promoted, lr, extra
             dr.schedule(new_state)
             self.state[k] = new_state
 
+        return True

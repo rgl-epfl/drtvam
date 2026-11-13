@@ -124,5 +124,8 @@ It requires the following additional parameters:
 
     * - ``weight_sparsity``
       - ``float``
-      - Weight of the sparsity term. Defaults to ``0``.
+      - Weight of the sparsity term. Defaults to ``0``. *Deprecated*: setting
+        it raises a warning and it will be removed in a future version. Use
+        :ref:`projector.max_pattern_value <projector>` instead to increase the
+        energy efficiency of the patterns.
 

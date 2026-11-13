@@ -12,7 +12,7 @@ from drtvam.geometry import geometries
 from drtvam.utils import save_img, save_vol, save_histogram, discretize, iou_loss, bhattacharyya_distance_coefficient
 from drtvam.utils import wasserstein_distance_volumes, calculate_absorbed_dose
 from drtvam.loss import losses
-from drtvam.lbfgs import LinearLBFGS
+from drtvam.lbfgs import LBFGS, LinearLBFGS
 
 from drtvam.physical_models import assemble_physical_forward_model
 
@@ -130,6 +130,7 @@ def optimize(config, patterns_fwd=None):
             sensor = s
         elif s.id() == 'final_sensor':
             final_sensor = s
+    projector = scene.emitters()[0]
 
     if final_sensor is None:
         final_sensor = sensor
@@ -160,6 +161,7 @@ def optimize(config, patterns_fwd=None):
     np.save(os.path.join(output, "target.npy"), target.numpy())
 
     patterns_key = 'projector.active_data'
+    pixels_key = 'projector.active_pixels'
 
     if filter_radon:
         # Deactivate pixels where the Radon transform is zero
@@ -178,7 +180,7 @@ def optimize(config, patterns_fwd=None):
         if len(active_pixels) == 0:
             raise ValueError("No active pixels found in the Radon transform.")
 
-        params['projector.active_pixels'] = active_pixels
+        params[pixels_key] = active_pixels
         params[patterns_key] = dr.zeros(mi.Float, dr.width(active_pixels))
         params.update()
 
@@ -200,7 +202,7 @@ def optimize(config, patterns_fwd=None):
         if len(active_pixels) == 0:
             raise ValueError("No active pixels found in the Radon transform.")
 
-        params['projector.active_pixels'] = active_pixels
+        params[pixels_key] = active_pixels
         params[patterns_key] = dr.zeros(mi.Float, dr.width(active_pixels))
         params.update()
 
@@ -229,24 +231,32 @@ def optimize(config, patterns_fwd=None):
 
     if 'optimizer' not in config.keys():
         print("No optimizer specified. Using linear L-BFGS.")
-        config['optimizer'] = {'type': 'lbfgs'}
+        config['optimizer'] = {'type': 'linear_lbfgs'}
+
+    def render_fn(vars):
+        params[patterns_key] = vars[patterns_key]
+        params.update()
+        vol = mi.render(scene, params, integrator=integrator, sensor=sensor, spp=spp, spp_grad=spp_grad, seed=i)
+        return vol
 
     optim_type = config['optimizer'].pop('type')
     if optim_type == 'adam':
         opt = mi.ad.Adam(**config['optimizer'])
     elif optim_type == 'sgd':
         opt = mi.ad.SGD(**config['optimizer'])
-    else:
-        def render_fn(vars):
-            params[patterns_key] = vars[patterns_key]
-            params.update()
-            vol = mi.render(scene, params, integrator=integrator, sensor=sensor, spp=spp, spp_grad=spp_grad, seed=i)
-            return vol
+    elif optim_type == 'lbfgs':
+        def line_search_fn(vars):
+            fwd_outputs = physical_forward_model(render_fn(vars))
+            return loss_fn(fwd_outputs[0], target, vars[patterns_key], *fwd_outputs[1:])
 
+        opt = LBFGS(line_search_fn=line_search_fn, **config['optimizer'])
+    elif optim_type == 'linear_lbfgs':
         def loss_fn2(y, patterns, *args):
             return loss_fn(y, target, patterns, *args)
 
-        opt = LinearLBFGS(loss_fn=loss_fn2, render_fn=render_fn)
+        opt = LinearLBFGS(loss_fn=loss_fn2, render_fn=render_fn, **config['optimizer'])
+    else:
+        raise ValueError(f"Unknown optimizer type: '{optim_type}'. Available optimizers are: ['adam', 'sgd', 'lbfgs', 'linear_lbfgs']")
 
     # Pass patterns to optimizer
     opt[patterns_key] = params[patterns_key]
@@ -266,8 +276,8 @@ def optimize(config, patterns_fwd=None):
 
     if patterns_fwd is not None:
         print("Using provided patterns for forward mode.")
-        active_pixels = params['projector.active_pixels']
-        params['projector.active_data'] = patterns_fwd.flatten()[active_pixels]
+        active_pixels = params[pixels_key]
+        params[patterns_key] = patterns_fwd.flatten()[active_pixels]
         params.update()
 
     elif "psf_analysis" in config:
@@ -276,8 +286,8 @@ def optimize(config, patterns_fwd=None):
         # we simply loop over the entries specified in the json
         number_rays_psf = len(config["psf_analysis"])
         print("Number of traced pixels:", number_rays_psf)
-        params['projector.active_data'] = dr.ones(mi.UInt32, number_rays_psf)
-        params['projector.active_pixels'] = dr.zeros(mi.UInt32, number_rays_psf)
+        params[patterns_key] = dr.ones(mi.UInt32, number_rays_psf)
+        params[pixels_key] = dr.zeros(mi.UInt32, number_rays_psf)
 
         xres = config["projector"]["resx"]
         yres = config["projector"]["resy"]
@@ -287,9 +297,9 @@ def optimize(config, patterns_fwd=None):
             assert entry["index_pattern"] < config["projector"]["n_patterns"], \
                 "Invalid entry in psf_analysis: index_pattern out of bounds. Please check the configuration file."
 
-            params['projector.active_pixels'][i] = \
+            params[pixels_key][i] = \
                 xres * yres * entry["index_pattern"] + xres * entry["y"] + entry["x"]
-            params['projector.active_data'][i] *= entry["intensity"]
+            params[patterns_key][i] *= entry["intensity"]
 
         params.update()
         print("Rendering final state...")
@@ -301,7 +311,7 @@ def optimize(config, patterns_fwd=None):
         np.save(os.path.join(output, "loss.npy"), loss_hist)
         np.save(os.path.join(output, "timing.npy"), timing_hist)
 
-        imgs_final = scene.emitters()[0].patterns()
+        imgs_final = projector.patterns()
         dr.eval(imgs_final)
 
         print("Saving images...")
@@ -316,6 +326,10 @@ def optimize(config, patterns_fwd=None):
         for i in pbar:
             if progressive and i == 5:
                 integrator.max_depth = max_depth
+                # Since max depth changes, it means that the forward model changes as well,
+                # which invalidates the gradient and parameter history for LBFGS optimizer, so we reset it.
+                if optim_type == 'lbfgs' or optim_type == 'linear_lbfgs':
+                    opt.reset()
 
             with dr.scoped_set_flag(dr.JitFlag.KernelHistory, True):
                 params.update(opt)
@@ -327,8 +341,7 @@ def optimize(config, patterns_fwd=None):
                 fwd_outputs = physical_forward_model(vol)
 
                 mi.Log(mi.LogLevel.Debug, "[drtvam] Calling loss from optimize loop")
-                loss = loss_fn(fwd_outputs[0], target, params['projector.active_data'],
-                               *fwd_outputs[1:])
+                loss = loss_fn(fwd_outputs[0], target, params[patterns_key], *fwd_outputs[1:])
                 dr.eval(loss)
                 # Update progress bar with loss
                 pbar.set_postfix(loss=loss.numpy())
@@ -340,20 +353,25 @@ def optimize(config, patterns_fwd=None):
                 # Primal timing
                 timing_hist[i, 0] = sum([h['execution_time'] for h in dr.kernel_history() if h['type'] == dr.KernelType.JIT])
 
-                dr.backward(loss)
-
                 if dr.all(loss == 0):
                     print("Converged")
                     break
 
+                dr.backward(loss)
+
                 if optim_type == 'lbfgs':
-                    opt.step(vol, loss, physical_forward_model)
+                    if not opt.step(loss):
+                        print("Converged")
+                        break
+                elif optim_type == 'linear_lbfgs':
+                    if not opt.step(vol, loss, physical_forward_model):
+                        print("Converged")
+                        break
                 else:
                     opt.step()
 
-                # Clamp patterns
-                opt[patterns_key] = dr.maximum(dr.detach(opt[patterns_key]), 0)
-
+                # Clip patterns
+                opt[patterns_key] = dr.clip(dr.detach(opt[patterns_key]), 0, projector.max_pattern_value)
                 # Adjoint timing
                 timing_hist[i, 1] = sum([h['execution_time'] for h in dr.kernel_history() if h['type'] == dr.KernelType.JIT])
         params.update(opt)
@@ -365,7 +383,7 @@ def optimize(config, patterns_fwd=None):
     polymerization = fwd_outputs[0]
 
 
-    imgs_final = scene.emitters()[0].patterns()
+    imgs_final = projector.patterns()
     dr.eval(imgs_final)
 
     # save also the compressed version normalized to [0, 255]

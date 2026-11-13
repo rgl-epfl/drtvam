@@ -76,6 +76,12 @@ The following additional parameters should be provided:
       - ``int``
       - The maximum number of iterations for the line search. Defaults to 20.
 
+    * - ``init_alpha``
+      - ``float``
+      - The initial step size of the backtracking line search. It is halved
+        until the line search conditions are satisfied. Defaults to 10 if
+        ``wolfe`` is True, and 1 otherwise.
+
 
 Linear L-BFGS (``Linear LBFGS``)
 --------------------------------
@@ -124,4 +130,9 @@ This optimizer requires the following additional parameters:
     * - ``search_it``
       - ``int``
       - The maximum number of iterations for the line search. Defaults to 20.
+
+    * - ``init_alpha``
+      - ``float``
+      - The initial step size of the backtracking line search. It is halved
+        until the Armijo condition is satisfied. Defaults to 1.
 
