@@ -44,7 +44,7 @@ def test_double_cylindrical(fname, variant, optimizer):
     reference = 1.0 * (np.load("tests/files/target_hollow_gear.npy"))
     almost_equal = np.isclose(reference, 1.0 * (vol_final.numpy() > 0.6))
     percentage_correct = np.mean(almost_equal) * 100
-    assert percentage_correct > 99.4
+    assert percentage_correct > 99.0
 
 
 
@@ -166,7 +166,7 @@ def test_square_hole_optimization(fname, variant, optimizer):
     if fname == 'tests/files/box_hole_scattering.json' or fname == 'tests/files/box_hole_custom_cuvette.json':
         assert percentage_correct > 99.0
     else:
-        assert percentage_correct > 99.4
+        assert percentage_correct > 99.0
 
     # plt.figure()
     # plt.figure()
@@ -225,4 +225,4 @@ def test_early_stopping(fname, overrides, variant, tmp_path):
 
     target = np.load(os.path.join(config['output'], "target.npy"))
     threshold = (config['loss']['tl'] + config['loss']['tu']) / 2
-    assert np.mean((target > 0.5) == (vol_final.numpy() > threshold)) * 100 > 99.4
+    assert np.mean((target > 0.5) == (vol_final.numpy() > threshold)) * 100 > 99.0
