@@ -13,6 +13,8 @@ class VolumeIntegrator(TVAMIntegrator):
                 f'    {self.sample_time=},\n'
                 f'    {self.max_depth=},\n'
                 f'    {self.rr_depth=},\n'
+                f'    {self.skip_zero_rays=},\n'
+                f'    {self.ray_order=},\n'
                 ']')
 
     def render(self: mi.SamplingIntegrator,
@@ -35,8 +37,13 @@ class VolumeIntegrator(TVAMIntegrator):
         projector = scene.emitters()[0]
 
         with dr.suspend_grad():
-            sampler, spp = self.prepare(projector, seed, spp)
-            ray, Le, weight = self.sample_rays(scene, projector, sampler)
+            subset = self.ray_subset(projector, sensor, self.skip_zero_rays)
+            n_pixels = None if subset is None else dr.width(subset)
+            if n_pixels == 0:
+                # All pixels are off: no dose anywhere
+                return dr.zeros(mi.TensorXf, sensor.film().data.shape)
+            sampler, spp = self.prepare(projector, seed, spp, n_pixels)
+            ray, Le, weight = self.sample_rays(scene, projector, sampler, subset)
 
             volume = sensor.compute_volume(scene)
             inv_vol = dr.select(volume != 0., dr.rcp(volume), 0.)
@@ -74,8 +81,9 @@ class VolumeIntegrator(TVAMIntegrator):
         projector = scene.emitters()[0]
 
         with dr.suspend_grad():
-            sampler, spp = self.prepare(projector, seed, spp)
-            ray, Le, weight = self.sample_rays(scene, projector, sampler)
+            subset = self.ray_subset(projector, sensor, skip_zero=False)
+            sampler, spp = self.prepare(projector, seed, spp, None if subset is None else dr.width(subset))
+            ray, Le, weight = self.sample_rays(scene, projector, sampler, subset)
 
             volume = sensor.compute_volume(scene)
             inv_vol = dr.select(volume != 0., dr.rcp(volume), 0.)
@@ -113,8 +121,9 @@ class VolumeIntegrator(TVAMIntegrator):
 
         projector = scene.emitters()[0]
 
-        sampler, spp = self.prepare(projector, seed, spp)
-        ray, Le, weight = self.sample_rays(scene, projector, sampler)
+        subset = self.ray_subset(projector, sensor, skip_zero=False)
+        sampler, spp = self.prepare(projector, seed, spp, None if subset is None else dr.width(subset))
+        ray, Le, weight = self.sample_rays(scene, projector, sampler, subset)
 
         volume = sensor.compute_volume(scene)
         inv_vol = dr.select(volume != 0., dr.rcp(volume), 0.)

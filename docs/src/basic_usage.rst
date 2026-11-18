@@ -168,6 +168,25 @@ Other entries are optional:
          disabled. This can significantly speed up the optimization for objects
          not covering the entire projection surface. Defaults to False.
 
+    *  - ``skip_zero_rays``
+       - ``bool``
+       - Dose (primal) renders only trace the rays of pixels whose value is
+         non-zero. A zero pixel deposits exactly zero dose, so the result is
+         unchanged; gradient renders still trace every pixel. This speeds up
+         renders of sparse patterns considerably (4-12x for patterns with 80 %
+         zeros). Defaults to False.
+
+    *  - ``ray_order``
+       - ``str``
+       - Order in which rays are traced: ``'pattern'`` (pattern by pattern),
+         ``'slice'`` (DMD row by row, all patterns of a row together) or
+         ``'auto'``. With a collimated projector each DMD row lights one
+         z-slice, so in slice order the dose writes stay in the GPU cache. This
+         is much faster once the dose volume no longer fits in the cache (3x
+         for the gradient render of a 300 MB volume on an RTX 4090). ``'auto'``
+         uses slice order when the dose volume is larger than 64 MB. Defaults
+         to ``'auto'``.
+
     *  - ``output``
        - ``str``
        - The output directory where the results will be saved. If not specified,

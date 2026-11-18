@@ -68,6 +68,23 @@ It takes the following parameters:
         force all paths to enter the medium while still correctly accounting for
         attenuation at the interfaces. Defaults to ``True``.
 
+    * - ``skip_zero_rays``
+      - ``bool``
+      - Flag that specifies if primal renders should only trace the paths of
+        projector pixels whose value is non-zero. A zero pixel deposits exactly
+        zero dose, so this does not change the result but speeds up renders of
+        sparse patterns. Gradient renders always trace every pixel. Defaults to
+        ``False``.
+
+    * - ``ray_order``
+      - ``str``
+      - Order in which paths are traced: ``'pattern'`` (pattern by pattern),
+        ``'slice'`` (projector row by row, all patterns of a row together) or
+        ``'auto'``. Slice order keeps the dose writes of a collimated projector
+        in the GPU cache, which is much faster for dose volumes that do not fit
+        in it. ``'auto'`` uses slice order when the dose volume is larger than
+        64 MB. Defaults to ``'auto'``.
+
 
 Radon integrator (``radon``)
 ----------------------------
