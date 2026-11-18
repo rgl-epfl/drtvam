@@ -228,7 +228,8 @@ class VolumeIntegrator(TVAMIntegrator):
             active_surface = active & si.is_valid() & ~active_medium
             # Next bounce
             bsdf = si.bsdf(ray)
-            ctx = mi.BSDFContext()
+            # Light tracing (rays start at the projector), so we use importance transport
+            ctx = mi.BSDFContext(mi.TransportMode.Importance)
             s1 = sampler.next_1d(active_surface)
             s2 = sampler.next_2d(active_surface)
 
