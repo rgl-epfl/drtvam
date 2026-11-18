@@ -19,7 +19,7 @@ def test_mitsuba_convolution(variant):
 
     # Build kernel
     conv = make_drjit_conv(spacing * 3, spacing * 1, spacing * 2, D, dt,
-                           radiusz=radius, radiusx=radius, radiusy=radius)
+                           radiusz=radius, radiusy=radius, radiusx=radius)
 
     # Input: 3D array with a single 1 at the center
     arr = dr.reshape(mi.TensorXf(dr.zeros(mi.Float, size * size *  size)), (size, size, size, 1))
@@ -35,8 +35,8 @@ def test_mitsuba_convolution(variant):
     # plt.show()
 
     # Build expected kernel analytically (separable outer product)
-    idx = mi.TensorXf(dr.arange(mi.Float, -radius, radius + 1) * spacing)[:-1]
-    idy = mi.TensorXf(dr.arange(mi.Float, -radius, radius + 1) * spacing * 2)[:-1]
+    idy = mi.TensorXf(dr.arange(mi.Float, -radius, radius + 1) * spacing)[:-1]
+    idx = mi.TensorXf(dr.arange(mi.Float, -radius, radius + 1) * spacing * 2)[:-1]
     idz = mi.TensorXf(dr.arange(mi.Float, -radius, radius + 1) * spacing * 3)[:-1]
     k1x = dr.exp(-(idx**2 / (4 * D * dt)))
     k1x /= dr.sum(k1x)
@@ -46,7 +46,7 @@ def test_mitsuba_convolution(variant):
     k1z /= dr.sum(k1z)
 
     print(k1z)
-    kernel_3d = k1z[:, None, None, None] * k1x[None, :, None, None] * k1y[None, None, :, None]
+    kernel_3d = k1z[:, None, None, None] * k1y[None, :, None, None] * k1x[None, None, :, None]
     kernel_3d /= dr.sum(kernel_3d)
 
     # plt.imshow(np.sum(kernel_3d, axis=3)[:, :, size//2])
@@ -77,7 +77,7 @@ def test_convolution_against_scipy_fft(variant):
     z_ax = np.arange(resz, dtype=np.float32) * dz - scalez / 2
     x_ax = np.arange(resx, dtype=np.float32) * dx - scalex / 2
     y_ax = np.arange(resy, dtype=np.float32) * dy - scaley / 2
-    Z, X, Y = np.meshgrid(z_ax, x_ax, y_ax, indexing='ij')
+    Z, Y, X = np.meshgrid(z_ax, y_ax, x_ax, indexing='ij')
 
     limit  = 0.01e-3
     vol_np = ((np.abs(Z) <= limit) & (np.abs(Y) <= limit) & (np.abs(X) <= limit)).astype(np.float32)
@@ -95,9 +95,9 @@ def test_convolution_against_scipy_fft(variant):
     result_fft_np = fft_convolve_3d(vol_np, kernel_3d)
 
     vol_drjit = mi.TensorXf(vol_np)
-    drjit_conv = make_drjit_conv(dx, dy, dz, D, delta_t, filter_radius, filter_radius, filter_radius)
+    drjit_conv = make_drjit_conv(dz, dy, dx, D, delta_t, filter_radius, filter_radius, filter_radius)
     result_drjit = drjit_conv(vol_drjit)
-    result_drjit_np = result_drjit.numpy().reshape(resz, resx, resy)
+    result_drjit_np = result_drjit.numpy().reshape(resz, resy, resx)
 
     assert np.allclose(result_drjit_np, result_fft_np, atol=1e-6), "Convolution result does not match expected result from scipy fft!"
 
