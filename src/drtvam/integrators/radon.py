@@ -75,7 +75,7 @@ class RadonIntegrator(TVAMIntegrator):
             contrib = throughput * dr.exp(-sigma_t*t) * (1 - dr.exp(-sigma_t * si.t))
             hit_target = active & (si.shape == target_shape)
             L[inside_target & active_medium] += contrib
-            t[active] += si.t
+            t[active & active_medium] += si.t
 
             inside_target = (~inside_target & hit_target) | (inside_target & ~hit_target) # /!\ This may cause some rays to leak out
 
