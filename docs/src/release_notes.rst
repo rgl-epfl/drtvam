@@ -9,10 +9,13 @@ Dr. TVAM 0.10.0
 ---------------
 *November 13, 2026*
 
-- Add a new optional parameter ``projector.max_pattern_value`` to set an upper bound on the pattern intensity. It can help reduce sparsity and increase energy efficiency of the patterns.
-- The loss option ``weight_sparsity`` is deprecated and now raises a warning. Use ``projector.max_pattern_value`` instead.
-- Standard LBFGS optimizer is now available and a few related bugs are fixed.
-- **Breaking change**: ``"optimizer": {"type": "lbfgs"}`` now selects the standard L-BFGS optimizer, which can be slower. Previously it selected linear L-BFGS. Use ``"type": "linear_lbfgs"`` (or omit the optimizer, as it is the default) to keep the old behavior. Optimizer parameters from the config are now passed to the optimizer, and unknown optimizer types raise an error.
+- Add a new optional parameter ``projector.max_pattern_value`` to set an upper bound on the pattern intensity. It can help reduce sparsity and increase energy efficiency of the patterns. See `[#79] <https://github.com/rgl-epfl/drtvam/pull/79>`_.
+- The loss option ``weight_sparsity`` is deprecated and now raises a warning. Use ``projector.max_pattern_value`` instead. See `[#79] <https://github.com/rgl-epfl/drtvam/pull/79>`_.
+- Standard LBFGS optimizer is now available and a few related bugs are fixed. See `[#79] <https://github.com/rgl-epfl/drtvam/pull/79>`_.
+- **Breaking change**: ``"optimizer": {"type": "lbfgs"}`` now selects the standard L-BFGS optimizer, which can be slower. Previously it selected linear L-BFGS. Use ``"type": "linear_lbfgs"`` (or omit the optimizer, as it is the default) to keep the old behavior. Optimizer parameters from the config are now passed to the optimizer, and unknown optimizer types raise an error. See `[#79] <https://github.com/rgl-epfl/drtvam/pull/79>`_.
+-  Small fix in `filter_radon` for attenuation and reflections. See `[#84] <https://github.com/rgl-epfl/drtvam/pull/84>`_.
+- `resx` and `resy` were swapped in the volumetric film. See `[#83] <https://github.com/rgl-epfl/drtvam/pull/83>`_.
+- Energy was not preserved when rays entered a medium. Now we use `mi.BSDFContext(mi.TransportMode.Importance)`. See `[#81] <https://github.com/rgl-epfl/drtvam/pull/81>`_.
 
 Dr. TVAM 0.9.0
 --------------
