@@ -168,6 +168,14 @@ Other entries are optional:
          disabled. This can significantly speed up the optimization for objects
          not covering the entire projection surface. Defaults to False.
 
+    *  - ``skip_zero_rays``
+       - ``bool``
+       - Dose (primal) renders only trace the rays of pixels whose value is
+         non-zero. A zero pixel deposits exactly zero dose, so the result is
+         unchanged; gradient renders still trace every pixel. This speeds up
+         renders of sparse patterns considerably (4-12x for patterns with 80 %
+         zeros). Defaults to False.
+
     *  - ``output``
        - ``str``
        - The output directory where the results will be saved. If not specified,

@@ -21,6 +21,10 @@ class TVAMIntegrator(mi.ad.integrators.common.ADIntegrator):
         # Shoot from the center of the pixels only
         self.regular_sampling = props.get('regular_sampling', False)
 
+        # Primal (dose) renders only trace rays of pixels whose value is non-zero:
+        # a zero pixel deposits exactly zero dose. Gradient passes always trace all rays.
+        self.skip_zero_rays = props.get('skip_zero_rays', False)
+
     def parse_scene(self, scene: mi.Scene):
         target_shape = None
         medium = None
@@ -41,7 +45,8 @@ class TVAMIntegrator(mi.ad.integrators.common.ADIntegrator):
     def prepare(self,
                 emitter: TVAMProjector,
                 seed: int = 0,
-                spp: int = 0):
+                spp: int = 0,
+                n_pixels: int = None):
 
         original_sampler = emitter.sampler()
         sampler = original_sampler.clone()
@@ -55,7 +60,10 @@ class TVAMIntegrator(mi.ad.integrators.common.ADIntegrator):
         spp = sampler.sample_count()
 
         sampler.set_samples_per_wavefront(spp)
-        wavefront_size = emitter.active_size() * spp
+        # Number of pixels that will be traced (all active pixels by default)
+        if n_pixels is None:
+            n_pixels = emitter.active_size()
+        wavefront_size = n_pixels * spp
 
         if wavefront_size > 2**32:
             raise Exception(
@@ -72,14 +80,20 @@ class TVAMIntegrator(mi.ad.integrators.common.ADIntegrator):
         scene: mi.Scene,
         emitter: DMD,
         sampler: mi.Sampler,
+        subset: mi.UInt32 = None,
     ) -> Tuple[mi.RayDifferential3f, mi.Spectrum, mi.Vector2f, mi.Float]:
 
         n_patterns, h, w = emitter.size()
         spp = sampler.sample_count()
 
-        # Compute discrete sample position
-        idx = dr.repeat(emitter.active_pixels, spp)
-        L = dr.repeat(emitter.active_data, spp)
+        # Compute discrete sample position, optionally only for a subset of the active pixels
+        # (given as indices into the active pixel arrays)
+        if subset is None:
+            idx = dr.repeat(emitter.active_pixels, spp)
+            L = dr.repeat(emitter.active_data, spp)
+        else:
+            idx = dr.repeat(dr.gather(mi.UInt32, emitter.active_pixels, subset), spp)
+            L = dr.repeat(dr.gather(mi.Float, emitter.active_data, subset), spp)
         emitter_idx = idx // (h * w)
         pixel_idx = idx % (h * w)
 
@@ -106,6 +120,11 @@ class TVAMIntegrator(mi.ad.integrators.common.ADIntegrator):
 
         with dr.resume_grad():
             ray, weight = emitter.sample_ray(time, mi.Vector2f(0.), pos_adjusted, sampler.next_2d())
+
+        if subset is not None:
+            # The projector weight is normalized by the number of traced rays:
+            # keep the per-ray weight of a render of all active pixels
+            weight *= dr.width(subset) / emitter.active_size()
 
         # 1/pdf of the time sample
         weight *= self.print_time

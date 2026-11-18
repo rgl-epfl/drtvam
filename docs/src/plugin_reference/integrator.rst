@@ -68,6 +68,14 @@ It takes the following parameters:
         force all paths to enter the medium while still correctly accounting for
         attenuation at the interfaces. Defaults to ``True``.
 
+    * - ``skip_zero_rays``
+      - ``bool``
+      - Flag that specifies if primal renders should only trace the paths of
+        projector pixels whose value is non-zero. A zero pixel deposits exactly
+        zero dose, so this does not change the result but speeds up renders of
+        sparse patterns. Gradient renders always trace every pixel. Defaults to
+        ``False``.
+
 
 Radon integrator (``radon``)
 ----------------------------

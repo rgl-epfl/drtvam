@@ -123,6 +123,7 @@ def optimize(config, patterns_fwd=None):
     progressive = config.get('progressive', False)
     transmission_only = config.get('transmission_only', True)
     regular_sampling = config.get('regular_sampling', False)
+    skip_zero_rays = config.get('skip_zero_rays', False)
     sensor = None
     final_sensor = None
     for s in scene.sensors():
@@ -146,7 +147,8 @@ def optimize(config, patterns_fwd=None):
         'rr_depth': rr_depth,
         'print_time': time,
         'transmission_only': transmission_only,
-        'regular_sampling': regular_sampling
+        'regular_sampling': regular_sampling,
+        'skip_zero_rays': skip_zero_rays,
     })
 
     # Computing reference
@@ -271,6 +273,7 @@ def optimize(config, patterns_fwd=None):
         'rr_depth': config.get('rr_depth_ref', 8),
         'transmission_only': transmission_only,
         'regular_sampling': regular_sampling,
+        'skip_zero_rays': skip_zero_rays,
         'print_time': time
     })
 
