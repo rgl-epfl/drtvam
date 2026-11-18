@@ -25,6 +25,16 @@ class TVAMIntegrator(mi.ad.integrators.common.ADIntegrator):
         # a zero pixel deposits exactly zero dose. Gradient passes always trace all rays.
         self.skip_zero_rays = props.get('skip_zero_rays', False)
 
+        # Order in which rays are traced: 'pattern' (pattern by pattern), 'slice' (DMD row by
+        # row, all patterns of a row together) or 'auto' ('slice' for dose volumes larger than
+        # ray_order_min_mb). With a collimated projector each DMD row lights one z-slice, so in
+        # slice order the rays in flight write to a few slices only, which stay in the GPU cache.
+        self.ray_order = props.get('ray_order', 'auto')
+        if self.ray_order not in ('auto', 'pattern', 'slice'):
+            raise ValueError(f"[{self.__class__.__name__}] ray_order must be 'auto', 'pattern' or 'slice', "
+                             f"got '{self.ray_order}'.")
+        self.ray_order_min_mb = props.get('ray_order_min_mb', 64.)
+
     def parse_scene(self, scene: mi.Scene):
         target_shape = None
         medium = None
@@ -74,6 +84,40 @@ class TVAMIntegrator(mi.ad.integrators.common.ADIntegrator):
 
         sampler.seed(seed, wavefront_size)
         return sampler, spp
+
+    def use_slice_order(self, sensor: mi.Sensor) -> bool:
+        if self.ray_order != 'auto':
+            return self.ray_order == 'slice'
+        n_bytes = 4 * dr.prod(sensor.film().data.shape)
+        return n_bytes > self.ray_order_min_mb * 2**20
+
+    def ray_subset(self, emitter: TVAMProjector, sensor: mi.Sensor, skip_zero: bool):
+        """
+        Indices into the active pixel arrays of the pixels to trace, in tracing order,
+        or None to trace all active pixels in their stored order.
+        """
+        slice_order = self.use_slice_order(sensor)
+        if not (skip_zero or slice_order):
+            return None
+
+        if skip_zero:
+            # A zero pixel deposits no dose
+            subset = dr.compress(emitter.active_data != 0.)
+        else:
+            subset = dr.arange(mi.UInt32, emitter.active_size())
+
+        if slice_order and dr.width(subset) > 0:
+            # Sort by (row, pattern, column): scatter each index to its key, then read
+            # the occupied keys back in increasing order
+            n_patterns, h, w = emitter.size()
+            pixel = dr.gather(mi.UInt32, emitter.active_pixels, subset)
+            pattern, row, col = pixel // (h * w), (pixel // w) % h, pixel % w
+            key = (row * n_patterns + pattern) * w + col
+            sorted_idx = dr.zeros(mi.UInt32, n_patterns * h * w)
+            dr.scatter(sorted_idx, subset + 1, key)
+            subset = dr.gather(mi.UInt32, sorted_idx, dr.compress(sorted_idx != 0)) - 1
+
+        return subset
 
     def sample_rays(
         self,

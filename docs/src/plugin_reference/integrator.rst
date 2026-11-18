@@ -76,6 +76,15 @@ It takes the following parameters:
         sparse patterns. Gradient renders always trace every pixel. Defaults to
         ``False``.
 
+    * - ``ray_order``
+      - ``str``
+      - Order in which paths are traced: ``'pattern'`` (pattern by pattern),
+        ``'slice'`` (projector row by row, all patterns of a row together) or
+        ``'auto'``. Slice order keeps the dose writes of a collimated projector
+        in the GPU cache, which is much faster for dose volumes that do not fit
+        in it. ``'auto'`` uses slice order when the dose volume is larger than
+        64 MB. Defaults to ``'auto'``.
+
 
 Radon integrator (``radon``)
 ----------------------------

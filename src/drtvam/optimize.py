@@ -124,6 +124,7 @@ def optimize(config, patterns_fwd=None):
     transmission_only = config.get('transmission_only', True)
     regular_sampling = config.get('regular_sampling', False)
     skip_zero_rays = config.get('skip_zero_rays', False)
+    ray_order = config.get('ray_order', 'auto')
     sensor = None
     final_sensor = None
     for s in scene.sensors():
@@ -149,6 +150,7 @@ def optimize(config, patterns_fwd=None):
         'transmission_only': transmission_only,
         'regular_sampling': regular_sampling,
         'skip_zero_rays': skip_zero_rays,
+        'ray_order': ray_order,
     })
 
     # Computing reference
@@ -274,6 +276,7 @@ def optimize(config, patterns_fwd=None):
         'transmission_only': transmission_only,
         'regular_sampling': regular_sampling,
         'skip_zero_rays': skip_zero_rays,
+        'ray_order': ray_order,
         'print_time': time
     })
 
