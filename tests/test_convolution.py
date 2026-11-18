@@ -95,7 +95,7 @@ def test_convolution_against_scipy_fft(variant):
     result_fft_np = fft_convolve_3d(vol_np, kernel_3d)
 
     vol_drjit = mi.TensorXf(vol_np)
-    drjit_conv = make_drjit_conv(dz, dy, dx, D, delta_t, filter_radius, filter_radius, filter_radius)
+    drjit_conv = make_drjit_conv(dz, dy, dx, D, delta_t, filter_radius, filter_radius, filter_radius, boundary='zero')
     result_drjit = drjit_conv(vol_drjit)
     result_drjit_np = result_drjit.numpy().reshape(resz, resy, resx)
 
