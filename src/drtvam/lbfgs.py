@@ -88,6 +88,7 @@ class LBFGS(mi.ad.Optimizer):
         alpha = dr.opaque(mi.Float, self.init_alpha)
         c1 = 1e-4
         c2 = 0.9
+        found = False
         for it in range(self.search_it):
             params = {}
             for k, (p, _, _, _) in self.state.items():
@@ -113,13 +114,20 @@ class LBFGS(mi.ad.Optimizer):
             wolfe1 = (f_new <= f + c1 * alpha * g_dot_z)
             if not self.wolfe:
                 if dr.all(wolfe1):
+                    found = True
                     break
             else:
                 wolfe2 = (g_new_dot_z >= c2 * g_dot_z)
                 if dr.all(wolfe1 & wolfe2):
+                    found = True
                     break
 
             alpha *= 0.5
+
+        if not found:
+            # No step size satisfied the conditions: keep the parameters and stop
+            mi.Log(mi.LogLevel.Warn, "[drtvam] L-BFGS line search failed, stopping the optimization")
+            return False
 
         for k, (p, promoted, lr, extra) in self.state.items():
             new_val = dr.detach(p + alpha * search_dirs[k])
@@ -224,6 +232,7 @@ class LinearLBFGS(mi.ad.Optimizer):
             g_old = self.state[k][3][5]
             g_dot_z += dr.dot(g_old, dr.ravel(search_dirs[k]))
 
+        found = False
         for _ in range(self.search_it):
 
             out = fwd(vol + alpha * dvol)
@@ -236,9 +245,15 @@ class LinearLBFGS(mi.ad.Optimizer):
 
             armijo = (f_new <= loss + c1 * alpha * g_dot_z)
             if dr.all(armijo):
+                found = True
                 break
 
             alpha *= 0.5
+
+        if not found:
+            # No step size satisfied the Armijo condition: keep the parameters and stop
+            mi.Log(mi.LogLevel.Warn, "[drtvam] L-BFGS line search failed, stopping the optimization")
+            return False
 
         for k, (p, promoted, lr, extra) in self.state.items():
             new_val = dr.detach(p + alpha * search_dirs[k])
