@@ -2,7 +2,7 @@ import drjit as dr
 import mitsuba as mi
 
 def make_drjit_conv(spacingz, spacingy, spacingx, diffusion_D, delta_t,
-                    radiusz=10, radiusy=10, radiusx=10):
+                    radiusz=10, radiusy=10, radiusx=10, boundary='reflect'):
 
     def make_filter(spacing: float, radius: int):
         indices = dr.arange(mi.Float, -radius, radius + 1)
@@ -26,10 +26,11 @@ def make_drjit_conv(spacingz, spacingy, spacingx, diffusion_D, delta_t,
 
     # this function is called from within the physical model
     # volumes are stored as (z, y, x, channels)
+    # the default 'reflect' boundary means no flux through the grid boundary
     def conv(r):
-        r = dr.convolve(r, filter=filter_z, filter_radius=radiusz, axis=0)
-        r = dr.convolve(r, filter=filter_y, filter_radius=radiusy, axis=1)
-        r = dr.convolve(r, filter=filter_x, filter_radius=radiusx, axis=2)
+        r = dr.convolve(r, filter=filter_z, filter_radius=radiusz, axis=0, boundary=boundary)
+        r = dr.convolve(r, filter=filter_y, filter_radius=radiusy, axis=1, boundary=boundary)
+        r = dr.convolve(r, filter=filter_x, filter_radius=radiusx, axis=2, boundary=boundary)
         return r
 
     return conv
