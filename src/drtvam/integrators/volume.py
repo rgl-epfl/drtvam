@@ -160,7 +160,7 @@ class VolumeIntegrator(TVAMIntegrator):
             dr.forward_to(Le)
 
         attenuation = mi.Spectrum(1.)
-        δL = mi.TensorXf(δL) if δL is not None else dr.zeros(mi.TensorXf, sensor.film().resolution())
+        δL = mi.TensorXf(δL) if δL is not None else dr.zeros(mi.TensorXf, sensor.film().data.shape)
         em_grad = dr.zeros(mi.Float, dr.width(Le))
         ss_grad = mi.Spectrum(0.)
         st_grad = mi.Spectrum(0.)

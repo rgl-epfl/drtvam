@@ -9,8 +9,8 @@ def assemble_physical_forward_model(config):
     if "physical_model" in config and config["physical_model"]["type"] == "inhibitor":
         inhibitor_0 = dr.ones(mi.TensorXf,
                               shape=(config["sensor"]["film"]["resz"],
-                                     config["sensor"]["film"]["resx"],
-                                     config["sensor"]["film"]["resy"],1))
+                                     config["sensor"]["film"]["resy"],
+                                     config["sensor"]["film"]["resx"],1))
         if "inhibitor_init" in config["physical_model"]:
             print("Loading inhibitor initial state from",
                   config["physical_model"]["inhibitor_init"])
@@ -25,8 +25,8 @@ def assemble_physical_forward_model(config):
     elif "physical_model" in config and config["physical_model"]["type"] == "inhibitor_diffusion":
         inhibitor_0 = dr.ones(mi.TensorXf,
                               shape=(config["sensor"]["film"]["resz"],
-                                     config["sensor"]["film"]["resx"],
-                                     config["sensor"]["film"]["resy"],1))
+                                     config["sensor"]["film"]["resy"],
+                                     config["sensor"]["film"]["resx"],1))
         if "inhibitor_init" in config["physical_model"]:
             print("Loading inhibitor initial state from",
                   config["physical_model"]["inhibitor_init"])
@@ -49,8 +49,8 @@ def assemble_physical_forward_model(config):
         radiusx = int(np.sqrt(6 * diffusion_D * delta_t) / spacingx * 3)
         radiusy = int(np.sqrt(6 * diffusion_D * delta_t) / spacingy * 3)
 
-        conv = make_drjit_conv(spacingz, spacingx, spacingy, diffusion_D, delta_t,
-            radiusz, radiusx, radiusy)
+        conv = make_drjit_conv(spacingz, spacingy, spacingx, diffusion_D, delta_t,
+            radiusz, radiusy, radiusx)
 
         def physical_fwd(light_dose):
             # see https://drjit.readthedocs.io/en/stable/autodiff.html#differentiating-loops
@@ -84,7 +84,7 @@ def assemble_physical_forward_model(config):
 #       x = (torch.arange(config['sensor']['film']['resx'], device='cuda')) * spacingx - config['sensor']['scalex'] / 2
         # y = (torch.arange(config['sensor']['film']['resy'], device='cuda')) * spacingy - config['sensor']['scaley'] / 2
         # z = (torch.arange(config['sensor']['film']['resz'], device='cuda')) * spacingz - config['sensor']['scalez'] / 2
-        # X, Y, Z = torch.meshgrid(z, x, y, indexing='ij')
+        # Z, Y, X = torch.meshgrid(z, y, x, indexing='ij')
 
         # delta_t = diffusion_time / diffusion_number_rotations
         # r = torch.sqrt(X**2 + Y**2 + Z**2)

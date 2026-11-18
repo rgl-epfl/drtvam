@@ -7,8 +7,8 @@ class VolumetricFilm(mi.Film):
 
         #TODO: have proper reconstruction filters
         resz = props.get('resz', 256)
-        resy = props.get('resx', 256)
-        resx = props.get('resy', 256)
+        resy = props.get('resy', 256)
+        resx = props.get('resx', 256)
 
         # Spatial resolution of the film
         self.res = mi.ScalarVector3i(resx, resy, resz)
