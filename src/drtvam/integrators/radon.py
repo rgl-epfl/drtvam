@@ -64,7 +64,7 @@ class RadonIntegrator(TVAMIntegrator):
         throughput = mi.Spectrum(1.0)
         L = mi.Spectrum(0.0)
         t = mi.Float(0.0)
-        d = mi.UInt32(0)
+        depth = mi.UInt32(depth)
 
         while active:
             si = scene.ray_intersect(ray)
@@ -75,7 +75,7 @@ class RadonIntegrator(TVAMIntegrator):
             contrib = throughput * dr.exp(-sigma_t*t) * (1 - dr.exp(-sigma_t * si.t))
             hit_target = active & (si.shape == target_shape)
             L[inside_target & active_medium] += contrib
-            t[active] += si.t
+            t[active & active_medium] += si.t
 
             inside_target = (~inside_target & hit_target) | (inside_target & ~hit_target) # /!\ This may cause some rays to leak out
 
@@ -98,8 +98,8 @@ class RadonIntegrator(TVAMIntegrator):
 
             ray[active] = si.spawn_ray(si.to_world(bs.wo))
 
-            d[active & ~hit_target] += 1
-            active &= (d < self.max_depth)
+            depth[active & ~hit_target] += 1
+            active &= (depth < self.max_depth)
 
             active_medium = (active_medium & ~si.is_medium_transition()) | (si.is_medium_transition() & (si.target_medium(ray.d) != None))
 
